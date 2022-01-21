@@ -1,4 +1,3 @@
-package com.ssafy.inheritance;
 
 public class Car {
 	private String carName; // 전역변수에 대한 보호.

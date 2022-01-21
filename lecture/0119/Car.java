@@ -1,4 +1,4 @@
-package com.ssafy.classtest;
+
 
 public class Car {
 	String carName;

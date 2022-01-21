@@ -1,4 +1,4 @@
-package com.ssafy.ws02.step3;
+
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;

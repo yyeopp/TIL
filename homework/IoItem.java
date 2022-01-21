@@ -1,4 +1,4 @@
-package com.ssafy.hw04;
+
 
 public class IoItem {
 	private int itemNo;

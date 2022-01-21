@@ -1,4 +1,3 @@
-package com.ssafy.hw04;
 
 public class IoOutcome extends IoItem {
 	String selCom;

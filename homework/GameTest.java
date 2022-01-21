@@ -1,4 +1,4 @@
-package com.ssafy.ws01.step3;
+
 
 import java.util.Random;
 import java.util.Scanner;

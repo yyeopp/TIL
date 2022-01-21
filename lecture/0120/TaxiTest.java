@@ -1,4 +1,4 @@
-package com.ssafy.inheritance;
+
 
 public class TaxiTest {
 

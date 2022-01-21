@@ -1,4 +1,4 @@
-package com.ssafy.hw04;
+
 
 public class IoIncome extends IoItem {
 	String buyCom;

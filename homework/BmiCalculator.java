@@ -1,5 +1,3 @@
-package com.ssafy.hw02;
-
 import java.util.Arrays;
 
 public class BmiCalculator {
