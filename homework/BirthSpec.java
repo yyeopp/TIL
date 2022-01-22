@@ -1,4 +1,4 @@
-package com.ssafy.ws05;
+package com.company.ws05;
 
 import java.util.Scanner;
 

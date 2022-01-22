@@ -1,4 +1,4 @@
-package com.ssafy.ws05;
+package com.company.ws05;
 
 public class BirthStar {
 	public static String[] Star = { "염소", "물병", "물고기", "양", "황소", "쌍둥이", "게", "사자", "처녀", "천칭", "전갈", "사수" };
