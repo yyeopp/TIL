@@ -1,4 +1,4 @@
-package com.ssafy.ws03.step3;
+package com.company.ws03.step3;
 
 public class Book {
 	public String isbn;

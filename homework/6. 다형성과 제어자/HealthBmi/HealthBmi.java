@@ -1,4 +1,4 @@
-package com.ssafy.hw06.step2;
+package com.company.hw06.step2;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;

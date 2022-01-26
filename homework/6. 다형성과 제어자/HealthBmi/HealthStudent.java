@@ -1,4 +1,4 @@
-package com.ssafy.hw06.step2;
+package com.company.hw06.step2;
 
 public class HealthStudent {
 	private String name;

@@ -1,4 +1,4 @@
-package com.ssafy.hw02;
+package com.company.hw02;
 
 public class HealthStudent {
 	private String name;
