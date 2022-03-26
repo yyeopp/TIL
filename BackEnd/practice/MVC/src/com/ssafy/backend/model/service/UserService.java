@@ -4,5 +4,5 @@ import com.ssafy.backend.model.UserDto;
 
 public interface UserService {
 	
-	UserDto login(String id, String pass);
+	UserDto login(String id, String pass) throws Exception;
 }
