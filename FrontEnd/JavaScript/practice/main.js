@@ -78,7 +78,11 @@ $(function () {
 
   function genInfoWin(marker, bdNm) {
     return function () {
-      iwContent = bdNm;
+      iwContent = `
+      <div style="padding:5px; text-align:center; font-size: 13px">
+        ${bdNm}
+      </div>
+      `;
       infowindow = new kakao.maps.InfoWindow({
         content: iwContent,
         removable: true,
@@ -186,7 +190,8 @@ $(function () {
             regionName += temp[i];
             regionName += " ";
           }
-          regionName.length = regionName.length - 1;
+          regionName = regionName.substring(0, regionName.length - 1);
+          // regionName.length = regionName.length - 1;
 
           let regionOption = ``;
 
@@ -278,6 +283,8 @@ $(function () {
       numOfRows: "1000",
     };
 
+    // city(시도), region(시군구)
+
     $.ajax({
       url: "http://openapi.molit.go.kr/OpenAPI_ToolInstallPackage/service/rest/RTMSOBJSvc/getRTMSDataSvcAptTradeDev",
       type: "GET",
@@ -314,7 +321,87 @@ $(function () {
   }
 
   // 북마크들 저장
-  var bookmarks = [];
+  let bookmarks = [];
+
+  $.ajax({
+    url: "bookmark",
+    type: "GET",
+    data: "",
+    dataType: "json",
+    success: function (response) {
+      if (response.data.bookmarks.length != 0) {
+        initiateBookmark(response.data.bookmarks);
+      }
+    },
+    error: function () {
+      console.log("북마크 기능을 사용하려면 로그인이 필요합니다.");
+    },
+  });
+
+  // 초기상태 구현
+
+  function initiateBookmark(initialBookmarks) {
+    for (let i = 0; i < initialBookmarks.length; i++) {
+      let bmark = {
+        city: initialBookmarks[i].area.city,
+        region: initialBookmarks[i].area.region,
+        bookmarkId: initialBookmarks[i].bookmarkId,
+      };
+      bookmarks.push(bmark);
+    }
+    expressBookmark();
+  }
+
+  function expressBookmark() {
+    $("#region-bookmark").empty();
+    for (let i = 0; i < bookmarks.length; i++) {
+      let regionName = `${bookmarks[i].city} ${bookmarks[i].region}`;
+      let regionCode = bookmarks[i].bookmarkId;
+      $("#region-bookmark").append(`
+      <tr>
+        <td>
+          <div class="row align-items-center">
+            <div class="col-7" style="font-size: 15px">${regionName}</div>
+            <div class="col-5 d-flex align-items-center justify-content-end my-1">
+              <div style="display:none">${regionCode}</div>
+              <input type="button" class="bkmark_btn bkmark_btn1 me-1" id="btn-bookmark-use" value="조회">
+              <input type="button" class="bkmark_btn ms-1" id="btn-bookmark-del" value="삭제">
+            </div>
+          </div>
+        </td>
+      </tr>
+    `);
+    }
+  }
+
+  // 북마크 추가하기
+  function addBoorkmark(cityName, regName) {
+    let addBookmarkData = {
+      city: cityName,
+      region: regName,
+    };
+
+    console.log(addBookmarkData);
+
+    $.ajax({
+      url: "bookmark/new",
+      type: "POST",
+      data: JSON.stringify(addBookmarkData),
+      contentType: "application/json; charset=utf-8",
+      success: function (response) {
+        bookmarks.push({
+          city: cityName,
+          region: regName,
+          bookmarkId: response.data.bookmarkId,
+        });
+        console.log(bookmarks);
+        expressBookmark();
+      },
+      error: function (response) {
+        console.log(response);
+      },
+    });
+  }
 
   // 북마크 추가하기
   $("#btn-bookmark").on("click", function () {
@@ -324,40 +411,15 @@ $(function () {
       alert("지역을 선택해주세요.");
       return;
     }
-    let regionName = `${cityName}<br> ${regName}`;
 
-    // 북마크 추가 유효성 검사
-    for (let i = 0; i < bookmarks.length; i++) {
-      if (bookmarks[i] == regionName) {
-        alert("이미 추가된 지역입니다.");
-        return;
-      }
-    }
-
-    bookmarks.push(regionName);
-    $("#region-bookmark").append(`
-      <tr>
-        <td>
-          <div class="row">
-            <div class="col-7" style="font-size: 12px">${regionName}</div>
-            <div class="col-2">
-              <input type="button" id="btn-bookmark-use" value="조회" style="font-size: 6px">
-            </div>
-            <div class="col-2">
-              <input type="button" id="btn-bookmark-del" value="삭제" style="font-size: 6px">
-            </div>
-          </div>
-        </td>
-      </tr>
-    `);
-
-    // 저장된 북마크를 눌러서 조회하기
-    $("#btn-bookmark-use").on("click", function () {
-      useBookmark($(this));
-    });
+    addBoorkmark(cityName, regName);
   });
 
-  $("#btn-bookmark-del").on("click", function () {
+  $(document).on("click", "#btn-bookmark-use", function () {
+    useBookmark($(this));
+  });
+
+  $(document).on("click", "#btn-bookmark-del", function () {
     delBookmark($(this));
   });
 
@@ -365,8 +427,7 @@ $(function () {
   function useBookmark(button) {
     cityName = button.parent().parent().children().eq(0).text().split(" ")[0];
     regName = button.parent().parent().children().eq(0).text().split(" ")[1];
-    // select에 성공하게 만들면 되는데..
-    //$('select[name="options"]').find('option:contains("Blue")').attr("selected",true);
+
     $("#city-select")
       .children()
       .each(function () {
@@ -383,22 +444,33 @@ $(function () {
           $(this).prop("selected", true);
         }
       });
-    // if (month >= 10) {
-    //   inputDate = `${year}${month}`;
-    // } else {
-    //   inputDate = `${year}0${month}`;
-    // }
-    // console.log($("#region-select").find(":checked").text());
-
-    // initiateByDate(inputDate);
   }
 
-  // TODO: 고장남
+  // 북마크 삭제하기
   function delBookmark(button) {
-    button.parent().parent().remove();
+    let deleteTarget = {
+      bookmarkId: button.parent().children().eq(0).text(),
+    };
+
+    $.ajax({
+      url: "bookmark",
+      type: "DELETE",
+      data: JSON.stringify(deleteTarget),
+      contentType: "application/json; charset=utf-8",
+      success: function () {
+        function findTarget(element) {
+          if (element.bookmarkId == deleteTarget.bookmarkId) return true;
+        }
+        let i = bookmarks.findIndex(findTarget);
+        bookmarks.splice(i, 1);
+        expressBookmark();
+      },
+      error: function (response) {
+        console.log(response);
+      },
+    });
   }
 
-  // 북마크 버튼으로 지역 조회
   // 지역 선택 완료 시 간략 정보 뿌리는 함수
   function makeRoughData(response) {
     // console.log("여기?");
@@ -406,9 +478,8 @@ $(function () {
     roughData += `
         <thead>  
           <tr>
-            <th>아파트명</th>
-            <th>거래일자</th>
-            <th></th>
+            <th class="ps-3 pt-1 pb-3">아파트명</th>
+            <th class="pe-3 pt-1 pb-3">거래일자</th>
           </tr>
         </thead>
         <tbody>
@@ -418,11 +489,10 @@ $(function () {
       .each(function () {
         roughData += `
             <tr>
-              <td>${$(this).find("아파트").text()}</td>
+              <td class="px-3 py-2">${$(this).find("아파트").text()}</td>
               <td>${$(this).find("년").text()}.${$(this).find("월").text()}.${$(this)
           .find("일")
           .text()}</td>
-              <td style="visibility: hidden">0</td>
             </tr>
             
               `;
@@ -455,7 +525,7 @@ $(function () {
               let detailData = ``;
               detailData += `
             <tr>
-              <th>이름</th>
+              <th class="px-3 py-2">이름</th>
               <th>거래금액</th>
               <th>거래일자</th>
               <th>전용면적</th>
@@ -463,7 +533,7 @@ $(function () {
               <th>건축년도</th>
             </tr>
             <tr>
-              <td>${$(this).find("아파트").text()}</td>
+              <td class="px-3 py-3">${$(this).find("아파트").text()}</td>
               <td>${$(this).find("거래금액").text()}</td>
               <td>${$(this).find("년").text()}.${$(this).find("월").text()}.${$(this)
                 .find("일")
@@ -501,7 +571,7 @@ $(function () {
   }
 
   function trClick(tr) {
-    $(tr).css("background-color", "bisque").css("font-weight", "bold");
+    $(tr).css("background-color", "rgba(222,247,236,0.5)");
     $(tr).children().eq(2).empty().append(1);
   }
 
