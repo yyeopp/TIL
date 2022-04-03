@@ -90,6 +90,12 @@ if: 조건에 따른 코드 실행
 
 choose-when-otherwise: 다중 조건 처리. if-elseif-else와 유사
 
+catch: Exception 처리
+
+- 기본적으로 JSP는 지정된 오류페이지를 통해 처리하는데, `<c:catch>`액션은 JSP에서 예외가 발생할 만한 코드를 페이지로 넘기지 않고 직접 처리할 때 사용
+
+- `<c:if>` 액션과 함께 사용하면, `try~catch`와 같은 기능 구현 가능
+
 forEach: array나 collection의 각 항목 처리. for와 유사
 
 `<c:forEach var ="course" items="${courses}">`
