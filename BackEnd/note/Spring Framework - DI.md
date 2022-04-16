@@ -445,6 +445,49 @@ Dependency Injection은, 객체 간의 의존관계를 개발자가 아닌 외�
 
 
 
+---
 
+# DI - XML
+
+## Spring 설정
+
+XML 문서는, application에서 사용할 Spring 자원들을 설정하는 파일이 된다.
+
+Spring Container가 그 내용을 읽어 기능을 제공한다.
+
+### 빈 객체 생성 및 주입
+
+주입할 객체들을 XML 파일에 `<bean>` 태그로 입력하면,
+
+main 메서드는 Container에서 주입기 역할을 하는 API를 통해 설정된 bean을 주입받게 된다.
+
+```java
+ApplicationContext context = new ClassPathXmlApplicationContext(".xml");
+MService mService = context.getBean("mService", MService.class);
+```
+
+위와 같은 방식이다.
+
+## 빈 의존 관계 설정
+
+Constructor 이용하는 방법, Setter 메서드 (Property) 이용하는 방법이 있다.
+
+자세한 건 기술적인 내용이므로 자료 참고
+
+---
+
+# DI - Annotation
+
+설정 파일이 XML에서 java 파일로 대체된다.
+
+`@Configuration` 을 통해 해당 java가 설정 파일임을 명시하고, 
+
+`@ComponentScan`을 통해 Bean을 담고 있는 클래스들을 스캔 및 반영한다.
+
+내부에서 `@Bean` 을 통해 bean을 생성 및 의존관계를 명시한다. 주로 생성자와 setter 메서드가 활용된다.
+
+main메서드에서는 `@ContextConfiguration` 을 통해 설정파일을 읽어온다.
+
+활용할 Bean에 대해서는 `@Autowired` 를 통해 의존관계를 불러올 수 있다.
 
 
