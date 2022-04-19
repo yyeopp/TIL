@@ -130,8 +130,6 @@ Controller의 처리결과를 보여줄 응답화면을 생성
 
 대신, XML과 Annotation을 이용한 **Setting** 작업이 매우 중요할 것
 
-
-
 ### Spring MVC 구현
 
 1. web.xml에 DispatcherServlet 등록 및 Spring 설정파일 등록
@@ -147,5 +145,41 @@ Controller의 처리결과를 보여줄 응답화면을 생성
 좋은 디자인은, Controller가 많은 일을 하지 않고 Service에 처리를 위임하는 것.
 
 
+
+### 실행 순서
+
+1. 웹 어플리케이션 실행 시 WAS(Tomcat)에 의해 web.xml이 로딩
+
+2. web.xml에 등록되어 있는 `ContextLoaderListener`가 생성.
+   
+   - `<listener>`의 형태로 등록되어 있음.
+   
+   - ApplicationContext를 생성하는 역할을 수행
+
+3. 생성된 `ContextLoaderListener`가 root-context.xml을 로딩
+
+4. root-context.xml에 등록되어 있는 Spring Container가 구동.
+   
+   - 이 때 component-scan에 의해 business logic (Service)과 database logic (DAO), VO 객체들이 생성됨
+   
+   - root-context.xml에서 Controller class까지 스캔하는 것도 가능하지만, Controller는 Web 기능이 실제로 실행된 이후에만(Client로부터 요청을 받은 후에만) 사용된다는 점을 감안해서 따로 빼놓는 게 바람직.
+
+5. Client로부터 요청이 들어옴 (request)
+
+6. web.xml로부터 `DispatcherServlet`이 생성됨.
+   
+   - `DispatcherServlet`은 FrontController의 역할을 수행함.
+   
+   - Client로부터 요청된 메시지를 분석해서, 알맞은 PageController에게 전달하는 것이 목적.
+   
+   - 실질적인 작업은 PageController에서 이루어짐
+
+7. `DispatcherServlet`은  servlet-context.xml을 로딩하여 `Controller` 객체를 생성함.
+   
+   - servlet-context.xml은 여러 개를 등록할 수 있다: client의 request에 대응하여 서비스 별로 xml을 만들고, 각 서비스에 해당하는 Controller 객체를 xml 로딩 시 component-scan하여 생성하는 것.
+
+8. servlet-context.xml에 등록된 Spring Container (두번째)가 구동되며, 응답에 맞는 PageController를 동작시킴.
+   
+   - 앞서 생성된 DAO, VO, Service 객체들과 협업하여, 작업을 처리함
 
 
