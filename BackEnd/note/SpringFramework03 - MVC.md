@@ -144,8 +144,6 @@ Controller의 처리결과를 보여줄 응답화면을 생성
 
 좋은 디자인은, Controller가 많은 일을 하지 않고 Service에 처리를 위임하는 것.
 
-
-
 ### 실행 순서
 
 1. 웹 어플리케이션 실행 시 WAS(Tomcat)에 의해 web.xml이 로딩
@@ -160,11 +158,17 @@ Controller의 처리결과를 보여줄 응답화면을 생성
 
 4. root-context.xml에 등록되어 있는 Spring Container가 구동.
    
-   - 이 때 component-scan에 의해 business logic (Service)과 database logic (DAO), VO 객체들이 생성됨
+   - 주의할 점: component-scan을 여기서 돌리면, `DispatcherServlet`이 생성되기 전에 Controller bean이 생성된다.
+     
+     이렇게 만들어진 Controller bean은 DispatcherServlet과 연결을 형성하지 **못한다!**
    
-   - root-context.xml에서 Controller class까지 스캔하는 것도 가능하지만, Controller는 Web 기능이 실제로 실행된 이후에만(Client로부터 요청을 받은 후에만) 사용된다는 점을 감안해서 따로 빼놓는 게 바람직.
+   - 즉, component-scan은 나중에 하는 게 맞다.
 
 5. Client로부터 요청이 들어옴 (request)
+   
+   - 이 때 요청은 pageLoading 시의 request를 포함하고 있다.
+   
+   - 4번과 5번 사이의 텀은 거의 없다시피 하지만, **순서**는 존재한다는 게 중요
 
 6. web.xml로부터 `DispatcherServlet`이 생성됨.
    
@@ -174,12 +178,10 @@ Controller의 처리결과를 보여줄 응답화면을 생성
    
    - 실질적인 작업은 PageController에서 이루어짐
 
-7. `DispatcherServlet`은  servlet-context.xml을 로딩하여 `Controller` 객체를 생성함.
+7. `DispatcherServlet`은  servlet-context.xml을 로딩함.
    
-   - servlet-context.xml은 여러 개를 등록할 수 있다: client의 request에 대응하여 서비스 별로 xml을 만들고, 각 서비스에 해당하는 Controller 객체를 xml 로딩 시 component-scan하여 생성하는 것.
+   - `<component-scan>`은 여기서 돌리는 게 적절하다.
 
 8. servlet-context.xml에 등록된 Spring Container (두번째)가 구동되며, 응답에 맞는 PageController를 동작시킴.
    
-   - 앞서 생성된 DAO, VO, Service 객체들과 협업하여, 작업을 처리함
-
-
+   - 생성된 객체들이 협업하여, 작업을 처리한다.
