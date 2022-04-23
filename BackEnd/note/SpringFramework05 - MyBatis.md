@@ -32,4 +32,90 @@ SQL문과 프로그래밍 코드의 분리
 
 다양한 프로그래밍 언어로 구현가능
 
+**그 외 내용은 기술문서를 적극 참조할 것**
 
+---
+
+# MyBatis - Spring
+
+---
+
+# Mapper Interface
+
+## MyBatis3의 Mapper Interface
+
+mapping 파일에 기재된 SQL을 호출하기 위한 interface.
+
+SQL을 호출하는 프로그램을 Type safe하게 기술하기 위해 등장.
+
+---
+
+# MyBatis - Spring 연동
+
+## 개요
+
+MyBatis를 Standalone 형태로 사용하는 경우, `SqlSessionFactory` 객체를 직접 사용하게 됨.
+
+하지만 스프링을 사용하는 경우
+
+- 스프링 컨테이너에 MyBatis 관련 bean을 등록하여 MyBatis를 사용한다.
+
+- 스프링에서 제공하는 트랜잭션 기능을 사용할 수 있다.
+
+MyBatis를 스프링과 연동하기 위해서는, 라이브러리가 필요하다.
+
+- pom.xml에 의존성을 추가함.
+
+## DataSource 설정
+
+스프링에서 데이터 소스를 관리하게 되므로, MyBatis 설정파일에서 DS관련 설정이 생략될 수 있다.
+
+대신 application-context.mxl에 데이터소스를 설정함.
+
+- 데이터소스는, dataSource 아이디를 가지는 bean으로 데이터베이스 연결정보를 가진 객체.
+
+MyBatis와 스프링을 연동하면, 데이터벵스 설정과 트랜잭션 처리가 스프링에서 관리된다.
+
+## 트랜잭션 관리자 설정
+
+`transactionManager` 라는 id를 가지는 bean. 트랜잭션을 관리하는 객체
+
+MyBatis는 JDBC를 그대로 사용하기 때문에, `DataSourceTransactionManager` 타입의 빈을 사용하게 된다.
+
+어노테이션 기반으로 트랜잭션을 관리하기 위해, `<tx:annotation driven>`을 context-root.xml에 설정하고
+
+비로소 스프링은 메서드나 클래스에 `@Transcational`이 선언되어 있으면 AOP를 통해 트랜잭션을 처리할 수 있다.
+
+## SqlSessionFactoryBean 설정
+
+MyBatis 애플리케이션은 `SqlSessionFactory`를 중심으로 수행된다.
+
+스프링에서 해당 객체를 생성하기 위해, root-context.xml에 빈으로 등록한다.
+
+- 이 때 사용할 데이터소스와 mybatis 설정파일에 대한 정보를 property로 입력해야 한다.
+
+## Mapper 빈 등록
+
+Mapper 인터페이스를 사용하기 위해, 스캐너를 사용해 자동 등록하거나 직접 빈으로 등록한다.
+
+- `mapperScannerConfigurer`를 설정하면, Mapper 인터페이스를 자동으로 검색하여 빈으로 등록한다.
+
+- `MapperFactoryBean`클래스는 매퍼 인터페이스를 직접 등록할 때 사용한다.
+
+## MyBatis Configuration 파일
+
+스프링 사용 시, DB 접속정보나 Mapper 관련 설정이 스프링 빈으로 등록되기 때문에 configuration 파일이 간소화된다.
+
+따라서, 해당 파일에는 `typeAlias`, `typeHandler` 같이 스프링에서 직접 관리하지 않는 정보만 설정한다.
+
+## 데이터 접근 객체 구현
+
+특정한 기술을 사용해, 데이터 저장소에 접근하는 방식을 구현한 객체.
+
+`@Repository`로 데이터 접근 객체를 설정하고
+
+`@Autowired`로 사용하려는 Mapper 인터페이스를 데이터접근 객체와 의존관계를 설정한다.
+
+
+
+ 
