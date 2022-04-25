@@ -38,6 +38,58 @@ SQL문과 프로그래밍 코드의 분리
 
 # MyBatis - Spring
 
+## 주요 Component
+
+### SqlMapConfig
+
+xml로 만들거나 java class로 만들 수 있음
+
+데이터베이스 접속 주소 정보나 객체 alias, Mapping 파일의 경로 등 **고정된 환경 정보**를 설정.
+
+따로 만들어 둔 dbinfo.properties와 mapper.xml들을 참조하게 됨
+
+### dbinfo.properties
+
+SqlMapConfig가 읽는 단순 파일
+
+DB에 대한 정보를 저장
+
+### mapper.xml
+
+종전 DAO 클래스가 가지고 있던 메서드와 sql문을 그대로 재현하고 있는 xml.
+
+여러 태그들이 지원된다.
+
+- namespace, insert/update/delete/select 등
+
+- 여기에 id, parameterType, resultType, resultMap 등을 입력
+
+### SqlSessionFactory
+
+SqlSession을 생성함. Builder를 사용할 필요
+
+MyBatis 설정 파일을 바탕으로 생성된다.
+
+- mapper 정보를 모두 읽은 sqlMapConfig.
+
+### SqlSession
+
+SQL 실행과 Transaction 관리를 실행하는 핵심 class
+
+이후부터 DAO는 sqlSession에 메서드를 입력하게 된다.
+
+- mapper.xml에 명시한 태그 및 id를 지목해서 작동시킴
+
+## 직접 하다가 찾은 것들
+
+- `SqlMapConfig` 클래스를 따로 만들었을 때 component:scan이 닿기 위해 `@Component` 달아줘야 함
+
+- DTO와 table의 column은 일치할 필요가 없음. 객체 간 연동만 잘 구현하면 됨
+
+- 두 개 이상의 table을 참조할 시, resultMap을 잘 사용하는 것이 필수.
+  
+  - `<association propery>` 로 resultMap의 type이 되는 객체에 그 property에 해당하는 다른 객체를 주입할 수 있다.
+
 ---
 
 # Mapper Interface
@@ -115,7 +167,5 @@ Mapper 인터페이스를 사용하기 위해, 스캐너를 사용해 자동 등
 `@Repository`로 데이터 접근 객체를 설정하고
 
 `@Autowired`로 사용하려는 Mapper 인터페이스를 데이터접근 객체와 의존관계를 설정한다.
-
-
 
  
