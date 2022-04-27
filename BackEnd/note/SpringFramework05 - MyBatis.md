@@ -166,6 +166,24 @@ Mapper 인터페이스를 사용하기 위해, 스캐너를 사용해 자동 등
 
 `@Repository`로 데이터 접근 객체를 설정하고
 
-`@Autowired`로 사용하려는 Mapper 인터페이스를 데이터접근 객체와 의존관계를 설정한다.
+`@Autowired`로 사용하려는 Mapper 인터페이스를 데이터접근 객체(`ServiceImpl`)와 의존관계를 설정한다.
 
- 
+## 직접 하다가 찾은 것들
+
+- RepoImpl은 사라지게 된다. Mapper로 이름도 바꿀 수 있다
+
+- ServiceImpl에서 메서드를 호출하게 되면서 종전보다 Service 객체가 복잡해진다.
+
+- root-context.xml 설정이 중요하다
+  
+  - sqlSessionFactoryBean 설정하면서 dataSource와 configLocation, mapperLocations 설정하기
+  
+  - mybatis-spring;scan 하기
+
+- 정리하자면,
+  
+  - 원래 Repo 구현체에서 접근하던 SqlSession을 Spring bean으로 생성해서 관리
+  
+  - Repo 구현체에서 입력하던 코드는 충분히 Service에서 입력하는 것으로 대체 가능하므로 대체
+  
+  - mapper.xml들만 제대로 만들어놨다면 나머지는 MyBatis가 잘 처리해줌.
