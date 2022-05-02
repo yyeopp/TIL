@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+	
+<mapper namespace="com.ssafy.happyhouse.model.mapper.HospitalMapper">
+	
+	<select id="hospitalList" parameterType="String" resultType="HospitalListDto">
+		select hospNo as hospitalNo , yadmNm as hospitalName, lat, lng
+		from hospital
+		where dongCode = #{dongCode}
+	</select>
+	
+	<select id="viewHospital" parameterType="String" resultType="HospitalInfoDto">
+		select yadmNm as hospitalName, telno, addr, ratPsblYn
+		from hospital
+		where hospNo = #{hospitalNo}
+	</select>
+
+</mapper>

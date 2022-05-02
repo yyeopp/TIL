@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ssafy.happyhouse.model.mapper.LegalDongCodeMapper">
+
+	<select id="searchSidoList" resultType="SidoCodeDto">
+		select sidocode as code, sidoname as name
+		from sidocode
+	</select>
+	
+	<select id="searchGugunList" parameterType="String" resultType="GugunCodeDto">
+		select guguncode as code, gugunname as name
+		from guguncode
+		where gugunCode like concat(#{sidoCode},'%')
+	</select>
+	
+		
+	<select id="searchDongList" parameterType="String" resultType="DongCodeDto">
+		select dongcode as code, sidoName,gugunName, dongName as name
+		from dongcode
+		where dongcode like concat(#{code},'%')
+	</select>
+	
+	<select id="searchCenter" parameterType="String" resultType="BaseAddress">
+		select *
+		from baseaddress
+		where dongcode = #{dongCode}
+	</select>
+	
+
+<!-- 	<select id="idCheck" parameterType="string" resultType="int">
+		select count(userid)
+		from ssafy_member
+		where userid = #{userid}
+	</select>
+
+	<insert id="registerMember" parameterType="MemberDto">
+		insert into ssafy_member (userid, username, userpwd, email, joindate)
+		values (#{userId}, #{userName}, #{userPwd}, #{email}, now())
+	</insert>
+
+	<select id="login" parameterType="map" resultType="MemberDto">
+		select username, userid, email
+		from ssafy_member
+		where userid = #{userId} and userpwd = #{userPwd}
+	</select>
+	
+	<select id="listMember" resultType="memberDto">
+		select userid, userpwd, username, email, date_format(joindate, '%y.%m.%d') joindate
+		from ssafy_member
+		order by joindate desc;
+	</select>
+	
+	<select id="getMember" parameterType="String" resultType="memberdto">
+		select userid, userpwd, username, email, date_format(joindate, '%y.%m.%d') joindate
+		from ssafy_member
+		where userid = #{userid}
+	</select>
+	
+	<update id="updateMember" parameterType="MemberDto">
+		update ssafy_member
+		<trim prefix="set" suffixOverrides=",">
+			<if test="userPwd != null">userpwd = #{userPwd},</if>
+			<if test="email != null">email = #{email},</if>
+		</trim>
+		where userid = #{userId}
+	</update>
+	
+	<delete id="deleteMember" parameterType="String">
+		delete from ssafy_member
+		where userid = #{userid}
+	</delete> -->
+	
+</mapper>
