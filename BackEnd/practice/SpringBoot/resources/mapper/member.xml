@@ -25,10 +25,22 @@
 		where id = #{id} and name = #{name} and email = #{email}
 	</select>
 	
+	<select id="getInfo" parameterType="String" resultType="MemberDto">
+		select id, password, name, email, age 
+		from members
+		where id = #{id}
+	</select>
+	
+	
 	<update id="updateMember" parameterType="MemberDto">
 		update members
 		set password = #{password}, name = #{name}, email = #{email}, age = #{age}
 		where id = #{id}
 	</update>
+	
+	<delete id="deleteMember" parameterType="String">
+		delete from members
+		where id = #{id}
+	</delete>
 	
 </mapper>

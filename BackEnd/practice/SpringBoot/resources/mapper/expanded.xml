@@ -15,5 +15,15 @@
 		from hospital
 		where hospNo = #{hospitalNo}
 	</select>
+	
+	<select id="hospitalListRange" parameterType="String" resultType="HospitalListDto">
+		select hospNo as hospitalNo , yadmNm as hospitalName, lat, lng
+		from hospital
+		<if test="swLng != '' and swLng != null and neLng != '' and neLng != null"> 
+			WHERE LNG BETWEEN #{swLng} AND #{neLng} </if> 
+		<if test="swLat != '' and swLat != null and neLat != '' and neLat != null"> 
+			AND LAT BETWEEN #{swLat} AND #{neLat} 
+		</if>
+	</select>
 
 </mapper>

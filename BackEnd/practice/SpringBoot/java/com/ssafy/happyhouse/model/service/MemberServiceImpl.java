@@ -39,7 +39,9 @@ public class MemberServiceImpl implements MemberService {
 	}
 
 	@Override
+	@Transactional
 	public void deleteMember(String id) throws Exception {
+		memberMapper.deleteMember(id);
 		
 	}
 
@@ -50,7 +52,7 @@ public class MemberServiceImpl implements MemberService {
 
 	@Override
 	public MemberDto getInfo(String id) throws Exception {
-		return null;
+		return memberMapper.getInfo(id);
 	}
 
 }

@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ssafy.happyhouse.model.HospitalInfoDto;
@@ -37,6 +38,18 @@ public class ExpandedController {
 		try {
 			HospitalInfoDto list = hospitalService.viewHospital(hospitalNo);
 			return new ResponseEntity<HospitalInfoDto>(list, HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	@GetMapping("/hospitallist/")
+	public ResponseEntity<?> getHospitalListRange(@RequestParam("neLat") String neLat, @RequestParam("neLng") String neLng,
+			@RequestParam("swLat") String swLat,@RequestParam("swLng") String swLng) {
+		try {
+			List<HospitalListDto> list = hospitalService.hospitalListRange(neLat,neLng,swLat,swLng);
+			return new ResponseEntity<List<HospitalListDto>>(list, HttpStatus.OK);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

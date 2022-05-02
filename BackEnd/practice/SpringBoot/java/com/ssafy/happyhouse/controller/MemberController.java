@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -112,26 +113,45 @@ public class MemberController {
 		}
 	}
 
-	// mypage 버튼을 클릭하면 session에서 id정보를 얻어와서 유저정보를 get 해오는 방식으로 수정
-	// jsp 파일도 일부 수정이 필요함
-	@GetMapping("/mypage")
-	public String myPage(HttpSession session) {
-		MemberDto memberDto = (MemberDto) session.getAttribute("memberInfo");
-		System.out.println(memberDto.toString());
-		return "member/mypage";
+	@GetMapping("/mypage/{id}")
+	public String myPage(@PathVariable String id, Model model) {
+		try {
+			MemberDto memberDto = memberService.getInfo(id);
+			model.addAttribute("myInfo", memberDto);
+			return "member/mypage";
+		} catch (Exception e) {
+			e.printStackTrace();
+			model.addAttribute("msg", "마이페이지 로딩 중 문제가 발생했습니다.");
+			return "index";
+		}
 	}
 
 	@PostMapping("/update")
 	public String updateMember(MemberDto memberDto, Model model, HttpSession session) {
 		try {
-			System.out.println(memberDto.toString());
 			memberService.updateMember(memberDto);
-			return "redirect:/member/mypage";
+			return "redirect:/member/mypage/" + memberDto.getId();
 		} catch (Exception e) {
 			e.printStackTrace();
 			model.addAttribute("msg", "회원 정보 수정 중 문제가 발생했습니다.");
-			return "member/mypage";
+			return "index";
 		}
+	}
+
+	@GetMapping("/delete/{id}")
+	public String deleteMember(@PathVariable String id, Model model, HttpSession session) {
+		try {
+			memberService.deleteMember(id);
+			session.invalidate();
+			model.addAttribute("msg", "회원 탈퇴가 완료되었습니다.");
+			return "index";
+		} catch (Exception e) {
+			e.printStackTrace();
+			model.addAttribute("msg", "회원 탈퇴 중 문제가 발생했습니다.");
+			return "member/mypage/" + id;
+
+		}
+
 	}
 
 }

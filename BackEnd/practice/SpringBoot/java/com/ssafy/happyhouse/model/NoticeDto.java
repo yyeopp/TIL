@@ -1,17 +1,17 @@
 package com.ssafy.happyhouse.model;
 
 public class NoticeDto {
-	int noticeNo;
+	int no;
 	String title;
-	String content;
-	String writeDate;
+	String contents;
+	String writedate;
 
-	public int getNoticeNo() {
-		return noticeNo;
+	public int getNo() {
+		return no;
 	}
 
-	public void setNoticeNo(int noticeNo) {
-		this.noticeNo = noticeNo;
+	public void setNo(int no) {
+		this.no = no;
 	}
 
 	public String getTitle() {
@@ -22,26 +22,20 @@ public class NoticeDto {
 		this.title = title;
 	}
 
-	public String getContent() {
-		return content;
+	public String getContents() {
+		return contents;
 	}
 
-	public void setContent(String content) {
-		this.content = content;
+	public void setContents(String contents) {
+		this.contents = contents;
 	}
 
-	public String getWriteDate() {
-		return writeDate;
+	public String getWritedate() {
+		return writedate;
 	}
 
-	public void setWriteDate(String writeDate) {
-		this.writeDate = writeDate;
-	}
-
-	@Override
-	public String toString() {
-		return "NoticeDto [noticeNo=" + noticeNo + ", title=" + title + ", content=" + content + ", writeDate="
-				+ writeDate + "]";
+	public void setWriteDate(String writedate) {
+		this.writedate = writedate;
 	}
 
 }

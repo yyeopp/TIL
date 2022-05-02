@@ -26,4 +26,9 @@ public class HospitalServiceImpl implements HospitalService {
 		return hospitalDaoImpl.viewHospital(hospitalNo);
 	}
 
+	@Override
+	public List<HospitalListDto> hospitalListRange(String neLat, String neLng, String swLat, String swLng) {
+		return hospitalDaoImpl.hospitalListRange(neLat,neLng,swLat,swLng);
+	}
+
 }
