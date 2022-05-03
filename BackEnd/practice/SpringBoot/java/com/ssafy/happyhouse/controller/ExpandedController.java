@@ -13,19 +13,20 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.ssafy.happyhouse.model.HospitalInfoDto;
 import com.ssafy.happyhouse.model.HospitalListDto;
-import com.ssafy.happyhouse.model.service.HospitalService;
+import com.ssafy.happyhouse.model.SchoolDto;
+import com.ssafy.happyhouse.model.service.ExpandedService;
 
 @RestController
 @RequestMapping("/expanded")
 public class ExpandedController {
 	
 	@Autowired
-	HospitalService hospitalService;
+	ExpandedService expandedService;
 	
 	@GetMapping("/hospitallist/{dongCode}")
 	public ResponseEntity<?> getHospitalList(@PathVariable("dongCode") String dongCode) {
 		try {
-			List<HospitalListDto> list = hospitalService.hospitalList(dongCode);
+			List<HospitalListDto> list = expandedService.hospitalList(dongCode);
 			return new ResponseEntity<List<HospitalListDto>>(list, HttpStatus.OK);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -36,7 +37,7 @@ public class ExpandedController {
 	@GetMapping("/hospitalinfo/{hospitalNo}")
 	public ResponseEntity<?> getHospitalInfo(@PathVariable("hospitalNo") String hospitalNo) {
 		try {
-			HospitalInfoDto list = hospitalService.viewHospital(hospitalNo);
+			HospitalInfoDto list = expandedService.viewHospital(hospitalNo);
 			return new ResponseEntity<HospitalInfoDto>(list, HttpStatus.OK);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -48,8 +49,20 @@ public class ExpandedController {
 	public ResponseEntity<?> getHospitalListRange(@RequestParam("neLat") String neLat, @RequestParam("neLng") String neLng,
 			@RequestParam("swLat") String swLat,@RequestParam("swLng") String swLng) {
 		try {
-			List<HospitalListDto> list = hospitalService.hospitalListRange(neLat,neLng,swLat,swLng);
+			List<HospitalListDto> list = expandedService.hospitalListRange(neLat,neLng,swLat,swLng);
 			return new ResponseEntity<List<HospitalListDto>>(list, HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	@GetMapping("/schoollist/")
+	public ResponseEntity<?> getSchoolListRange(@RequestParam("neLat") String neLat, @RequestParam("neLng") String neLng,
+			@RequestParam("swLat") String swLat,@RequestParam("swLng") String swLng) {
+		try {
+			List<SchoolDto> list = expandedService.schoolListRange(neLat,neLng,swLat,swLng);
+			return new ResponseEntity<List<SchoolDto>>(list, HttpStatus.OK);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

@@ -15,26 +15,26 @@ import com.ssafy.happyhouse.model.mapper.LegalDongCodeMapper;
 public class LegalDongCodeServiceImpl implements LegalDongCodeService {
 	
 	@Autowired
-	private LegalDongCodeMapper legalDongCodeDao;
+	private LegalDongCodeMapper legalDongCodeMapper;
 
 	@Override
 	public List<SidoCodeDto> searchSidoList() throws Exception {
-		return legalDongCodeDao.searchSidoList();
+		return legalDongCodeMapper.searchSidoList();
 	}
 
 	@Override
 	public List<GugunCodeDto> searchGugunList(String sidoCode) throws Exception {
-		return legalDongCodeDao.searchGugunList(sidoCode);
+		return legalDongCodeMapper.searchGugunList(sidoCode);
 	}
 
 	@Override
 	public List<DongCodeDto> searchDongList(String gugunCode) throws Exception {
-		return legalDongCodeDao.searchDongList(gugunCode);
+		return legalDongCodeMapper.searchDongList(gugunCode);
 	}
 
 	@Override
 	public BaseAddress searchCenter(String dongCode) throws Exception {
-		return legalDongCodeDao.searchCenter(dongCode);
+		return legalDongCodeMapper.searchCenter(dongCode);
 	}
 
 }

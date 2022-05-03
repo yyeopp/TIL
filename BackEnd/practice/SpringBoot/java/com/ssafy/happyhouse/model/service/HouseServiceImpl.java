@@ -14,22 +14,22 @@ import com.ssafy.happyhouse.model.mapper.HouseMapper;
 public class HouseServiceImpl implements HouseService {
 	
 	@Autowired
-	HouseMapper houseDaoImpl;
+	HouseMapper houseMapper;
 	
 	@Override
 	public List<HouseList> searchHouseList(String dongCode) throws Exception {
-		return houseDaoImpl.searchHouseList(dongCode);
+		return houseMapper.searchHouseList(dongCode);
 	}
 
 	@Override
 	public List<HouseDealInfo> searchHouseDealInfo(int aptCode) throws Exception {
-		return houseDaoImpl.searchHouseDealInfo(aptCode);
+		return houseMapper.searchHouseDealInfo(aptCode);
 	}
 
 	@Override
 	public List<HouseList> searchHouseListRange(String neLat, String neLng, String swLat, String swLng)
 			throws Exception {
-		return houseDaoImpl.searchHouseListRange(neLat,neLng,swLat,swLng);
+		return houseMapper.searchHouseListRange(neLat,neLng,swLat,swLng);
 	}
 
 }

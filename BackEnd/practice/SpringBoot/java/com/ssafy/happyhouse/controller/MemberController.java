@@ -1,6 +1,5 @@
 package com.ssafy.happyhouse.controller;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import javax.servlet.http.HttpSession;
@@ -12,13 +11,12 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.ssafy.happyhouse.model.MemberDto;
+import com.ssafy.happyhouse.model.service.BookmarkService;
 import com.ssafy.happyhouse.model.service.MemberService;
 
 @Controller
@@ -27,6 +25,9 @@ public class MemberController {
 
 	@Autowired
 	MemberService memberService;
+
+	@Autowired
+	BookmarkService bookmarkService;
 
 	@GetMapping("/login")
 	public String mvlogin() {
@@ -141,6 +142,7 @@ public class MemberController {
 	@GetMapping("/delete/{id}")
 	public String deleteMember(@PathVariable String id, Model model, HttpSession session) {
 		try {
+			bookmarkService.deleteId(id);
 			memberService.deleteMember(id);
 			session.invalidate();
 			model.addAttribute("msg", "회원 탈퇴가 완료되었습니다.");

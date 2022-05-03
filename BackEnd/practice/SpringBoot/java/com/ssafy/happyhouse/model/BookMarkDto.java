@@ -1,6 +1,6 @@
 package com.ssafy.happyhouse.model;
 
-public class BookMarkDto {
+public class BookmarkDto {
 
 	String dongCode;
 	String addr;
