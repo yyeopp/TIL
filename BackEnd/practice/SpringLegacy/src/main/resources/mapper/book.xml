@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ssafy.ws.model.repo.BookRepo">
+
+	<insert id="insert" parameterType="book">
+		insert into book (isbn, title,
+		author, price, content)
+		values (#{isbn}, #{title}, #{author}, #{price},
+		#{content})
+	</insert>
+
+	<insert id="insertImg" parameterType="img">
+		insert into bookimg (isbn,
+		savefolder, originfile, savefile)
+		values (#{isbn}, #{saveFolder},
+		#{originFile}, #{saveFile})
+	</insert>
+	
+	<update id="update" parameterType="book">
+		update book
+		set title = #{title}, author = #{author}, price = #{price}, content = #{content}
+		where isbn = #{isbn}
+	</update>
+	
+	<delete id="delete" parameterType="String">
+		delete from book
+		where isbn = #{isbn}
+	</delete>
+	
+	<delete id="deleteFile" parameterType="String">
+		delete from bookimg
+		where isbn = #{isbn}
+	</delete>
+
+	<resultMap type="book" id="bookList">
+		<result column="isbn" property="isbn" />
+		<result column="title" property="title" />
+		<result column="author" property="author" />
+		<result column="price" property="price" />
+		<result column="content" property="content" />
+		<!-- book에 ImgDto 객체를 집어넣을 것이므로 "association propery"로 입력한다. -->
+		<!-- select="imgSearch"로 imgSearch라는 select 쿼리를 실행시키는 효과가 발생한다. -->
+		<association property="img" column="isbn=isbn"
+			javaType="img" select="searchImg" />
+	</resultMap>
+	
+	<resultMap type="book" id="bookResult">
+		<result column="isbn" property="isbn" />
+		<result column="title" property="title" />
+		<result column="author" property="author" />
+		<result column="price" property="price" />
+		<result column="content" property="content" />
+		<!-- book에 ImgDto 객체를 집어넣을 것이므로 "association propery"로 입력한다. -->
+		<!-- select="imgSearch"로 imgSearch라는 select 쿼리를 실행시키는 효과가 발생한다. -->
+		<association property="img" column="isbn=isbn"
+			javaType="img" select="searchImg" />
+	</resultMap>
+
+	<!-- book table에서는 img 정보가 담겨있지 않으니까 아래 다섯 정보만 가져오는 게 당연하다. -->
+	<!-- 하지만 resultMap이 bookList고, 여기에 property로 ImgDto가 설정되어 있으며 -->
+	<!-- imgSearch로 select 쿼리가 연동되어 있기 때문에 결과적으로 bookDto에 이미지 정보까지 담길 수 있다. -->
+	<select id="search" parameterType="map" resultMap="bookList">
+		select isbn, title, author, price, `content`
+		from book
+		<where>
+			<include refid="condition"></include>
+		</where>
+		order by isbn
+		limit #{start}, #{spp}
+		
+	</select>
+
+	<select id="searchImg" resultType="img">
+		select savefolder, originfile,
+		savefile
+		from bookimg
+		where isbn = #{isbn}
+	</select>
+
+	<select id="select" parameterType="String" resultMap="bookResult">
+		select
+		isbn, title, author, price, `content`
+		from book
+		where isbn = #{isbn}
+	</select>
+	
+	<sql id="condition">
+		<if test="word != null and word != ''">
+			<if test="key == 'title'">
+				and title like concat('%', #{word}, '%')
+			</if>
+			<if test="key == 'author'">
+				and author like concat('%', #{word}, '%')
+			</if>
+			<if test="key == 'isbn'">
+				and ${key} = #{word}
+			</if>
+		</if>
+	</sql>
+	
+	<select id="getTotalCount" parameterType="map" resultType="int">
+		select count(isbn)
+		from book
+		<where>
+			<include refid="condition"></include>
+		</where>
+	</select>
+
+</mapper>
