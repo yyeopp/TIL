@@ -298,4 +298,104 @@ Computed와 달리, ~했을 때 ~하라는 식의 **명령형 프로그래밍**.
 
 # Vue Event
 
-## Vue event
+## Vue event 청취: v-on
+
+button 등에 `v-on:액션`을 달아, DOM 이벤트를 듣고 트리거될 때 JS를 실행하도록 할 수 있다.
+
+- 대표적으로 click을 액션으로 등록할 수 있음
+
+- `v-on:click="counter ++"` 같은 형태로 Vue 내의 data를 직접 호출할 수 있다.
+
+## method event handler
+
+이벤트 발생 시 처리 로직을 v-on 내에 전부 집어넣기는 힘드므로, 이벤트 발생 시 처리해야 하는 method의 이름을 받아 처리하는 것도 가능하다.
+
+`v-on:click="greet"` 같은 형태로 Vue 내의 method를 호출할 수 있다.
+
+- `greet()`가 아닌 점을 주의
+
+## inline method handler
+
+메서드 이름만 직접 바인딩하는 대신, 직접 사용하는 것도 가능하다.
+
+- `greet()`가 된다는 것
+
+- 즉, 메서드 호출 시 파라미터 전달 또한 가능하다.
+
+- 메서드에서는 event 객체를 자동으로 전달받아, target 같은 property들을 활용할 수 있다.
+
+- 버튼의 경우 type 설정이 없는 한 자체적으로 **submit** 기능이 있기 때문에, event 객체를 전달받아 `.preventDefault()`하는 방법으로 자체 submit을 막는 방법 활용 가능
+
+## 이벤트 수식어 (Event Modifier)
+
+메서드는 기본적으로, **DOM의 이벤트를 처리하는 것보다 data 처리를 위한 로직만** 작업하는 것이 바람직하다.
+
+이를 해결하기 위해 v-on 이벤트에 이벤트 수식어를 입력할 수 있다.
+
+- 앞서 언급된 `.preventDefault()`는, `@click.prevent`로 동일하게 구현 가능하다.
+
+- `v-on:`은 `@`으로 축약할 수 있다.
+  
+  - `@click="sendMsg"` 같은 방식
+
+## 키 수식어 (Key Modifier)
+
+키 이벤트를 수신할 때, v-on에 대한 키 수식어 추가가 가능하다.
+
+- input 태그에서 `@keyup` 하는 것에 그치지 않고,
+
+- `@keyup.enter`이나 `@click.once` 같은 변화가 가능하다.
+
+## ref, $refs
+
+뷰에서는, $refs 속성을 이용해 DOM에 접근할 수 있다.
+
+하지만 Vue의 가장 중요한 목적 중 하나는 개발자가 DOM을 다루지 않게 하는 것인 바, **되도록 사용을 피하는 게 좋다.**
+
+- input 태그에 ref 속성과 식별자를 선언하고, JS에서 `$refs.식별자` 의 형식으로 접근한다.
+
+---
+
+# CSS class binding
+
+## class binding
+
+element의 class와 style을 변경한다.
+
+v-bind: 를 통해, class를 조건에 따라 적용하는 방식을 사용.
+
+- data에 boolean값을 선언해두고, DOM에서 해당 boolean을 class값으로 가질 것인지 여부를 bind해두는 것.
+
+- 따로 button 등의 인풋 토글을 만들어 boolean 값을 제어하면 된다.
+
+---
+
+# form input binding
+
+## 폼 입력 바인딩
+
+`v-model` directive를 사용해, form input과 textarea element에 **양방향 데이터 바인딩**을 생성할 수 있다.
+
+- text와 textarea 태그는 value 속성과 input 이벤트 사용
+
+- 체크박스, 라디오는 checked 속성과 change 이벤트 사용
+
+- select 태그는 value를 prop으로, change를 이벤트로 사용
+
+실제 사용은 다분히 기술적인 내용
+
+## form - 수식어 (Modifiers)
+
+### .lazy
+
+change 이벤트 이후에 동기화시키는 수식어.
+
+- 단순 keyup을 넘어, input 창을 아예 이탈할 때 발생
+
+### .number
+
+사용자 입력이 자동으로 숫자로 형변환된다.
+
+### .trim
+
+v-model이 관리하는 input을 자동으로 trim한다.
