@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ssafy.happyhouse.model.mapper.BoardMapper">
+	<insert id="writeBoard" parameterType="BoardDto">
+		insert into board
+		(boardId, memberId, title, content, boardListId)
+		values
+		(#{boardId},#{memberId},#{title},#{content},#{boardListId})
+	</insert>
+	
+	<insert id="writeComment" parameterType="CommentDto">
+		insert into comment
+		(commentId, boardId, content)
+		values
+		(#{commentId},#{boardId},#{content})
+	</insert>
+	<resultMap type="BoardDto" id="qnaResult">
+		<result column="boardId" property="boardId"/>
+		<result column="memberId" property="memberId"/>
+		<result column="title" property="title"/>
+		<result column="content" property="content"/>
+		<result column="hit" property="hit"/>
+		<result column="createdDate" property="createdDate"/>
+		<association property="commentDto" column="boardId=boardId"
+			javaType="CommentDto" select="searchComment" />
+	</resultMap>
+	
+	<select id="searchComment" resultType="commentDto">
+		select commentId, boardId, content, createdDate
+		from comment
+		where boardId = #{boardId}
+	</select>
+	
+	<select id="getQnAList" resultMap="qnaResult">
+		select boardId, memberId, title, content, hit, createdDate
+		from board
+		where boardListId = 1
+		order by boardID desc
+	</select>
+
+</mapper>
