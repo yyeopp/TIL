@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper
+	namespace="com.ssafy.happyhouse.model.mapper.BookmarkMapper">
+
+
+	<select id="bookmarkList" parameterType="String" resultType="HouseList">
+		select h.aptCode, h.apartmentName, h.buildyear, h.dong, h.jibun, h.lat, h.lng, gu.gugunname,
+		(select dealAmount from housedeal where aptCode = h.aptCode order by cast(dealAmount AS SIGNED) desc limit 1) maxPrice,
+		(select dealAmount from housedeal where aptCode = h.aptCode order by cast(dealAmount AS SIGNED) limit 1) minPrice
+		from houseinfo h
+		left join sidocode si
+		on left(h.dongcode,2) = left(si.sidocode,2)
+		left join guguncode gu
+		on left(h.dongcode,5) = left(gu.guguncode,5)
+		left join bookmark b
+		on h.aptCode = b.aptCode
+		where b.memberId = #{memberId}
+		order by apartmentName
+	</select>
+	
+	<insert id="insertBookmark" parameterType="map">
+		insert into bookmark (memberId, aptCode)
+		values (#{memberId}, #{aptCode})
+	</insert>
+	
+	<delete id="deleteBookmark" parameterType="map">
+		delete from bookmark
+		where memberId = #{memberId} and aptCode = #{aptCode}
+	</delete>
+	
+	<delete id="deleteBookmarkById" parameterType="String">
+		delete from bookmark
+		where memberId = #{memberId}
+	</delete>
+	
+</mapper>
