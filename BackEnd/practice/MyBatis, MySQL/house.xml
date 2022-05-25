@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ssafy.happyhouse.model.mapper.HouseMapper">
+
+	<select id="searchHouseList" parameterType="Map" resultType="HouseList">
+		select h.aptCode, h.apartmentName, h.buildyear, h.dong, h.jibun, h.lat, h.lng,si.sidoname, gu.gugunname,
+		(select dealAmount from housedeal where aptCode = h.aptCode and no = (select max(no) from housedeal where aptCode = h.aptCode)) recentPrice,
+		(select dealAmount from housedeal where aptCode = h.aptCode order by cast(dealAmount AS SIGNED) desc limit 1) maxPrice,
+		(select dealAmount from housedeal where aptCode = h.aptCode order by cast(dealAmount AS SIGNED) limit 1) minPrice
+		from houseinfo h
+		left join sidocode si
+		on left(h.dongcode,2) = left(si.sidocode,2)
+		left join guguncode gu
+		on left(h.dongcode,5) = left(gu.guguncode,5)
+		where dongCode like concat(#{gugunCode},'%')
+		and year(now())-#{buildYear} &lt; buildyear
+		and cast(replace((select dealAmount from housedeal where aptCode = h.aptCode and no = (select max(no) 
+		from housedeal where aptCode = h.aptCode)),',','') as signed) between #{minPrice} and #{maxPrice}
+		order by apartmentName
+	</select>
+
+	<select id="searchHouseDealInfo" parameterType="Long" resultType="HouseDealInfo">
+		select  dealAmount,dealYear,dealMonth,dealDay,area,floor
+		from housedeal 
+		where aptCode = #{aptcode}
+		order by dealyear desc,dealMonth desc , dealDay desc
+	</select>
+
+	<update id="hitHouseInfo" parameterType="Long">
+		update houseinfo
+		set aptHit = aptHit + 1
+		where aptCode = #{aptCode};
+	</update>
+
+	<select id="searchRegionInfo" parameterType="Long" resultType="Map">
+		select 
+		(select sigunguCode	from houseinfo i where i.aptCode=#{aptCode}) sigunguCode, 
+		(select sidoName from sidocode s where left(s.sidoCode,2) = left(sigunguCode,2)) sidoName,
+		(select gugunName from guguncode g where left(g.gugunCode,5) = sigunguCode) sigunguName;
+	</select>
+
+	<select id="searchHitRank" parameterType="Map" resultType="map">
+		select 
+		(select hit 
+		from (select aptCode, rank() over (order by aptHit desc) as hit from houseinfo) temp
+		where aptCode = #{aptCode}) hitRank,
+		(select count(aptCode) from houseinfo i where i.sigunguCode = #{regionCode}) regionTotal;
+	</select>
+
+	<select id="searchBookmarkInfo" parameterType="map" resultType="map">
+      	select bookmarkHit, bookmarkRank from
+		(select aptCode, bookmarkHit, rank() over (order by bookmarkHit desc) bookmarkRank from houseinfo where left(aptCode,5) = #{regionCode} ) b
+		where aptCode = #{aptCode};
+	</select>
+
+	<select id="searchAverageAmount" parameterType="int" resultType="int">
+      	select avg(recent) * 1000
+      	from(select aptCode, 
+      	(select cast(dealAmount AS SIGNED) from housedeal where aptCode = h.aptCode and no = 
+      	(select max(no) from housedeal where aptCode = h.aptCode)) recent
+      	from houseinfo h
+      	where sigunguCode = #{regionCode}) e;
+	</select>
+
+	<select id="searchHouseListRange" parameterType="Map" resultType="HouseList">
+		select h.aptCode, h.apartmentName, h.buildyear, h.dong, h.jibun, h.lat, h.lng,si.sidoname, gu.gugunname,
+		(select dealAmount from housedeal where aptCode = h.aptCode and no = (select max(no) from housedeal where aptCode = h.aptCode)) recentPrice,
+		(select dealAmount from housedeal where aptCode = h.aptCode order by cast(dealAmount AS SIGNED) desc limit 1) maxPrice,
+		(select dealAmount from housedeal where aptCode = h.aptCode order by cast(dealAmount AS SIGNED) limit 1) minPrice
+		from houseinfo h
+		left join sidocode si
+		on left(h.dongcode,2) = left(si.sidocode,2)
+		left join guguncode gu
+		on left(h.dongcode,5) = left(gu.guguncode,5)
+		WHERE lng BETWEEN #{swLng} AND #{neLng} 
+		AND lat BETWEEN #{swLat} AND #{neLat}
+		and year(now())-#{buildYear} &lt; buildyear
+		and cast(replace((select dealAmount from housedeal where aptCode = h.aptCode and no = (select max(no) 
+		from housedeal where aptCode = h.aptCode)),',','') as signed) between #{minPrice} and #{maxPrice}
+		order by apartmentName
+	</select>
+
+	<select id="searchGugunAvg" parameterType="Map" resultType="Map">
+		select dc.gugunName,SUBSTRING_INDEX(avg(cast(d.dealAmount AS SIGNED)),".",1)/10 amountAvg,  dc.lng,  dc.lat
+		from housedeal d
+		join houseInfo h
+		on h.aptCode = d.aptCode
+		and no = (select max(no) from housedeal where aptCode = h.aptCode)
+		join dongCode dc
+		on left(h.dongcode,5) = left(dc.dongCode,5)
+		and dc.lng BETWEEN #{swLng} AND #{neLng} 
+		AND dc.lat BETWEEN #{swLat} AND #{neLat}
+		and dc.dongName is null
+		and year(now())-#{buildYear} &lt; buildyear
+		and cast(replace((select dealAmount from housedeal where aptCode = h.aptCode and no = (select max(no) 
+		from housedeal where aptCode = h.aptCode)),',','') as signed) between #{minPrice} and #{maxPrice}
+		group by dc.gugunName;
+	</select>
+	<update id="addHouseBookmark" parameterType="map">
+		update houseinfo
+		set bookmarkHit = bookmarkHit + 1
+		where aptCode = #{aptCode};
+	</update>
+
+	<update id="removeHouseBookmark" parameterType="map">
+		update houseinfo
+		set bookmarkHit = bookmarkHit - 1
+		where aptCode = #{aptCode};
+	</update>
+
+	<select id="regionSearch" parameterType="String" resultType="map">
+		select left(d.dongCode,5) dongCode, concat(d.sidoName," ", d.gugunName) regionName, d.lng, d.lat, count(aptCode) aptNum
+		from dongcode d
+		left join houseinfo h
+		on left(d.dongCode,5) = h.sigunguCode
+		where dongName is null and gugunName is not null
+		and (sidoName like concat("%",#{keyword},"%") or gugunName like concat("%",#{keyword},"%"))
+		group by 1
+		order by 5 desc;
+	</select>
+
+	<select id="houseSearch" parameterType="String" resultType="map">
+		select h.aptCode, h.sigunguCode, h.apartmentName, h.lng, h.lat, h.bookmarkHit, 
+			concat(d.sidoName, " ", d.gugunName, " ", d.dongName) as regionName
+		from houseinfo h
+		left join dongcode d
+		on h.dongCode = d.dongCode
+		where h.apartmentName like concat("%", #{keyword}, "%")
+		order by 6 desc;
+	</select>
+
+	<select id="subwaySearch" parameterType="String" resultType="map">
+		select subwayname, linename, lng, lat, addr
+		from subway
+		where subwayname like concat("%",#{keyword},"%");
+	</select>
+	
+	<select id="houseDealChart" parameterType="Long" resultType="Map">
+		select  concat(right(dealyear,2),".",dealMonth) dealDate ,avg(dealAmount)*1000 dealAvg
+		from houseDeal
+		where aptCode = #{aptCode}
+		group by dealYear, dealMonth
+		order by dealYear , dealMonth limit 25;
+	</select>
+	
+	<select id="houseTrend" parameterType="int" resultType="map">
+		select c.regionName, (c.dealNum/10000 + d.hitSum + d.bookmarkSum*5) result, c.dealNum/1000 as dealSum, d.hitSum, d.bookmarkSum
+		from
+			(select left(a.dongCode,5) sigunguCode, a.gugunName regionName, b.dealNum
+			from(
+				select left(dongCode,5) dongCode, sidoName, gugunName
+				from dongcode
+				where left(dongCode,2)=#{sidoCode} and dongName is null and gugunName is not null) a
+			join 
+				(select left(h.dongCode,5) dongCode, count(*) dealNum
+				from housedeal d
+				left join houseinfo h
+				on d.aptCode = h.aptcode
+				where left(h.dongCode,2) = #{sidoCode}
+				group by left(h.aptcode,5)) b
+			on b.dongCode = a.dongCode) c
+		left join 
+			(select sigunguCode, sum(aptHit) hitSum, sum(bookmarkHit) bookmarkSum
+			from houseinfo
+			where left(sigunguCode,2)=#{sidoCode}
+			group by sigunguCode) d
+		on d.sigunguCode = c.sigunguCode
+		order by 2 desc
+		limit 20;
+	</select>
+	
+	<select id="houseTrendAll" resultType="map">
+		select concat(si.sidoName," ",gu.gugunName) regionName, (sum(total)/10000 + e.hitSum + e.bookmarkSum*5) result, 
+			sum(total)/1000 dealSum, e.hitSum, e.bookmarkSum
+		from houseinfo h
+		left Join
+			(select aptCode,count(*) total
+			from houseDeal d
+			group by aptCode) d
+		on h.aptCode = d.aptCode
+		left join sidoCode si
+		on left(h.dongCode,2) = left(si.sidoCode,2)
+		left join guguncode gu
+		on left(h.dongCode,5) = left(gu.gugunCode,5)
+		left join 
+			(select sigunguCode, sum(aptHit) hitSum, sum(bookmarkHit) bookmarkSum
+			from houseinfo	
+			group by sigunguCode) e
+		on e.sigunguCode = left(h.dongCode,5)
+		group by left(h.dongCode,5)
+		order by result desc
+		limit 20;
+	</select>
+
+</mapper>
