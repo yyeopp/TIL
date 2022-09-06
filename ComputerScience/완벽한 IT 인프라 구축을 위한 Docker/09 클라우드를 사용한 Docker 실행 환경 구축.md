@@ -360,18 +360,25 @@ Kubernetes에서 클러스터 구성 정보를 YAML이나 JSON 형식 정의 파
 > **서버가 클라이언트의 세션 상태 및 세션 정보를 저장하지 않는 네트워크 프로토콜**
 > 
 > - 즉, 요청에 대한 응답만 처리하는 방식
+> 
 > - 각 통신은 선행되거나 후속으로 따라오는 통신과 관련이 없다.
+> 
 > - 클라이언트가 송신하려 했던 모든 데이터가 서버쪽에 수신 되었는지 확인하지 않는다.
 > 
 > - **예제**
+>   
 >   - **UDP 프로토콜**
 >     - UDP는 서버가 클라이언트의 세션 상태 및 세션 정보 없이, 요청에 대한 응답만을 수행하는 네트워크 프로토콜.
 >   - **온라인 검색(검색창에 질문을 입력하고 엔터키를 누르는 형식)**
 >     - 검색창에 질문을 입력하다가 요청이 중단되어도, 다시 검색하면 된다.
+> 
 > - **장점**
+>   
 >   - 확장성이 좋다.
 >     - 서버가 클라이언트의 세션 상태 및 세션 정보를 저장하지 않기 때문에, 확정성이 좋다.
+> 
 > - **단점**
+>   
 >   - 서버가 세션 상태 및 세션 정보를 저장하지 않기 때문에, 클라이언트 측에서 송신할 데이터의 양이 많아진다.
 
 > #### 컨테이너에서의 영구 데이터 관리와 클라우드의 데이터 관리 서비스
@@ -389,5 +396,49 @@ Kubernetes에서 클러스터 구성 정보를 YAML이나 JSON 형식 정의 파
 ---
 
 ## GCP를 사용한 Docker 어플리케이션 개발
+
+### 어플리케이션 개발 흐름
+
+Chapter 08에서 Docker Machine을 사용해 GCP 상 가상머신에서 서비스를 공개했으나, 이는 가상머신 1대로 운용을 하기 때문에 장애 발생 시 서비스가 정지된다.
+
+- 컨테이너 안 어플리케이션을 버전업하려면 서비스 순단이 불가피하다.
+
+그래서 한 발 더 나가 GCP의 Kubernetes 매니지드 서비스인 GKE를 사용해, 서비스를 공개하는 방법을 알아본다.
+
+### 소스코드 관리 (Cloud Source Repositories)
+
+Cloud Console에서 **Cloud Source Repositories API**를 유효화시켜둔다.
+
+`gcloud alpha source repos create <리포지토리 이름>` 
+
+- CSR 상에 리포지토리를 작성한다.
+
+`git remote add google https://source.developers.com/p/$PROJECT_ID/r/<리포지토리명>`
+
+- 로컬에 있는 git 프로젝트로부터, CSR 상에 있는 리포지토리를 리모트 설정한다.
+
+`git push google master`
+
+- 이러면 이제 로컬에서 작업한 프로젝트를 CSR에 올릴 수 있다.
+
+Cloud Console의 소스 저장소에서 내용 확인이 가능하다.
+
+Google Cloud와 친화성이 좋은 GitHub 대용 리포지토리 서비스로 보면 된다.
+
+### Docker 이미지 빌드 (Cloud Container Builder)
+
+Cloud Container Builder를 사용하면, Dockerfile의 빌드부터 CSR 업로드까지 하나의 명령으로 모아 실행할 수 있다.
+
+#### API 유효화하기
+
+Google Kubernetes Engine API
+
+Google Container Registry API
+
+Google Cloud Build API
+
+3개를 각각 유효화한다.
+
+#### Docker 이미지 빌드
 
 
