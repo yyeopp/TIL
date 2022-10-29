@@ -1,6 +1,7 @@
 package com.hello.core.beanfind;
 
 import com.hello.core.AppConfig;
+import com.hello.core.member.MemberRepository;
 import com.hello.core.member.MemberService;
 import com.hello.core.member.MemberServiceImpl;
 import org.assertj.core.api.Assertions;
@@ -8,6 +9,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
