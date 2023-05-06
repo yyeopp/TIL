@@ -1,5 +1,8 @@
 package com.hello.core.member;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 public class Member {
     private Long id;
     private String name;
