@@ -30,4 +30,12 @@ public class OrderServiceTest {
         Order order = orderService.createOrder(memberId, "itemA", 10000);
         Assertions.assertThat(order.getDiscountPrice()).isEqualTo(1000);
     }
+
+    // 필드 주입을 사용할 시, 스프링 컨테이너를 본격적으로 사용하지 않는 Java 수준의 테스트가 불가능하다.
+
+//    @Test
+//    void fieldInjectionTest() {
+//        OrderServiceImpl orderService = new OrderServiceImpl();
+//    }
+
 }
