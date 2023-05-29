@@ -1,9 +1,11 @@
 package com.hello.core.order;
 
+import com.hello.core.annotaion.MainDiscountPolicy;
 import com.hello.core.discount.DiscountPolicy;
 import com.hello.core.member.Member;
 import com.hello.core.member.MemberRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -15,7 +17,7 @@ public class OrderServiceImpl implements OrderService {
     private final MemberRepository memberRepository;
 
     //    @Autowired            생성자가 한 개만 있으면, Autowired가 자동 적용된다.
-    public OrderServiceImpl(DiscountPolicy discountPolicy, MemberRepository memberRepository) {
+    public OrderServiceImpl(@MainDiscountPolicy DiscountPolicy discountPolicy, MemberRepository memberRepository) {
         this.discountPolicy = discountPolicy;
         this.memberRepository = memberRepository;
     }
