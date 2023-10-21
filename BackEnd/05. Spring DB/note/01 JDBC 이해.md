@@ -128,6 +128,88 @@ ORM은 SQL을 직접 작성하지 않기 때문에 개발 생산성이 매우 �
 
 ### DriverManager 커넥션 요청 흐름
 
-JDBC가 제공하는 `DriverManager`는 라이브러리에 등록된 DB 드라이버들을 관리하고, 커넥션을 획득하는 역할이다.
+- JDBC가 제공하는 `DriverManager`는 라이브러리에 등록된 DB 드라이버들을 관리하고, 커넥션을 획득하는 역할이다.
+  
+  - 애플리케이션 로직에서 커넥션이 필요할 때, `DriverManager.getConnection()` 으로 DB 커넥션을 획득하게 된다.
+
+- `DriverManager`는 External Libraries로 등록된 드라이버 목록을 자동으로 인식한다. 
+  
+  - 드라이버들에게 순서대로 정보를 넘겨서, 커넥션을 획득할 수 있는지 확인한다.
+
+- 전달하는 정보는 아래와 같다.
+  
+  - URL : `jdbc:h2: ~~`
+  
+  - 이름, 비밀번호 등 추가 정보
+
+- 각 드라이버는 **URL**을 기반으로 본인이 처리할 수 있는 요청인지 확인한다.
+
+- 처리 가능한 요청이면 실제 DB에 연결해서 커넥션을 획득하고, DriverManager에게 리턴한다.
+  
+  - 물론 그 커넥션은 `java.sql.Connection` 인터페이스가 구현되어 있는 객체
+
+---
+
+## JDBC 개발 - 등록
+
+순수 JDBC를 사용해서 회원 데이터를 DB에 등록는 기능을 개발하기
+
+### 요약
+
+1. DriverManager에서 Connection 획득하는 과정에서 예외처리
+
+2. `Statement` 클래스를 이용한 SQL 입력 및 execute 처리
+   
+   - `PreparedStatement` 클래스를 이용한 파라미터 바인딩 처리와 **SQL Injection** 공격 예방
+
+3. 리소스 정리하기 - `finally` 구문에서 `close()` 처리
+   
+   - **리소스 누수** 방지
+
+---
+
+## JDBC 개발 - 조회
+
+### 요약
+
+1. `ResultSet`을 이용해서 select 결과를 받아내기
+   
+   - `rs.next()` 의 사용법 숙지
+
+2. 테스트코드 상에서 insert된 객체와 select된 객체가 동일하다고 잡히는 이유
+   
+   - `lombok`에서 `@EqualsAndHashCode` 구현해준 덕분
+
+### ResultSet
+
+`ResultSet`은 DB 테이블과 동일하게 생긴 데이터 구조로, select 쿼리의 결과가 순서대로 들어간다.
+
+`ResultSet` 내부에는 `cursor` 가 있어서, 이동하면서 데이터를 조회하고 있다.
+
+커서는 최초에 데이터를 가지고 있지 않으므로, 애플리케이션 로직에서 `rs.next()` 를 한 번은 호출해야 한다.
+
+- `rs.next()` 했을 때 `false` 가 돌아오면 조회 결과가 없는 것.
+
+- 즉, **다행 조회가 가능한 쿼리인 경우** 처음 한 번은 기본으로 호출하고, 그 뒤에는 `false`가 나올 때까지 호출하기
+
+---
+
+## JDBC 개발 - 수정, 삭제
+
+insert 처리와 거의 동일하다.
+
+### 요약
+
+1. delete 쿼리에 대한 테스트코드 작성 방법
+   
+   - `NoSuchElementException`을 `assertThatThrownBy` 코드로 잡기
+
+2. 반복 실행 가능한 테스트코드 작성 방법
+   
+   - insert로 시작해서 delete 로 끝나기 때문에 계속 실행할 수 있다.
+   
+   - 하지만 좋은 방법이 아니라는 점 - 중간에 Exception이 발생한다면?
+   
+   - **트랜잭션** 활용 필요
 
 
