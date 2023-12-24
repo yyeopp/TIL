@@ -1,5 +1,6 @@
-package hello.thymeleaf.basic;
+package hello.thymeleafbasic.basic;
 
+import jakarta.servlet.http.HttpSession;
 import lombok.Data;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Controller;
@@ -7,8 +8,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;

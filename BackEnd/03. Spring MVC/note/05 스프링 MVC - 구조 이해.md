@@ -204,4 +204,106 @@ HttpServletResponse response) throws Exception {
 
 ## 뷰 리졸버
 
+### InternalResourceViewResolver
+
+스프링부트는 `InternalResourceViewResolver`라는 뷰 리졸버는 자동으로 등록한다.
+
+해당 클래스는 `application.properties` 에서 postfix와 suffix를 가져다가, 경로 설정 시에 사용한다.
+
+#### 스프링부트가 자동 등록하는 뷰 리졸버
+
+핸들러 매핑, 핸들러 어댑터와 마찬가지로 **어댑터 패턴**이 적용되어 있다.
+
+여러 개가 자동으로 등록되고, 요청마다 처리 가능한 뷰 리졸버를 순차 탐색으로 골라서 가져온다.
+
+- `BeanNameViewResolver`
+  
+  - 빈 이름으로 뷰를 찾아서 반환함
+  
+  - 엑셀 파일 생성 기능 등
+
+- `InternalResourceViewResolver`
+  
+  - JSP를 처리할 수 있는 뷰를 반환
+
+### 뷰 리졸버 동작 방식
+
+- 핸들러 어댑터가 **논리 뷰** 이름을 획득한다.
+
+- 해당 이름으로 `viewResolver`를 호출한다.
+
+- 뷰 리졸버가 `InternalResourceView` 를 반환한다.
+
+- `view.render()` 함수가 호출되면, `InternalResourceView`가 JSP 파일에 해당하는 **포워딩**을 처리한다.
+
+#### 참고
+
+JSTL 라이브러리를 함께 사용한다면, `InternalResourceView`를 상속받은 `JstlView`를 반환하게 된다.
+
+---
+
+## 스프링 MVC - 시작
+
+스프링이 제공하는 컨트롤러는 **애노테이션** 기반으로 동작한다.
+
+처음부터 애노테이션을 사용했던 건 아닌데, `@RequestMapping` 이라는 애노테이션을 붙여줌으로써 컨트롤러가 매우 유연하고 실용적으로 변화했다.
+
+- 과거에는 스프링 프레임워크의 MVC 부분이 약해서 다른 프레임워크를 섞어서 쓰기도 했는데,
+
+- 지금은 스프링이 통일했다.
+
+### @RequestMapping
+
+핸들러 매핑과 핸들러 매핑에서도 가장 우선순위가 높은 것들은 **애노테이션 기반**으로 동작하는 클래스들이다.
+
+- `RequestMappingHandlerMapping` 과 `RequestMappingHandlerAdapter`
+
+실무적으로 애노테이션 기반을 99% 사용 중이므로, 이 방식을 배워야 한다.
+
+### 예제 코드 요약
+
+- 컨트롤러 클래스는 `@Controller` 를 처리하여 스프링 빈으로 등록한다.
+  
+  - 해당 애노테이션을 사용해야, 스프링 MVC에서 **애노테이션 기반 컨트롤러**로 인식해준다.
+  
+  - 클래스 레벨에 `@RequestMapping`을 달아주는 것으로도 스프링 MVC에 애노테이션 기반 컨트롤러로 등록할 수 있다.
+
+- `@RequestMapping` 과 url-pattern 을 메서드에 달아서, 요청 정보를 매핑한다.
+
+- 메서드는 `ModelAndView`를 생성해서 리턴한다.
+  
+  - 메서드에서 `HttpServletRequest, Response` 를 파라미터로 사용할 수 있다.
+
+---
+
+## 스프링 MVC - 컨트롤러 통합
+
+### 예제 코드 요약
+
+- `@RequestMapping`을 사용하면 메서드 단위로 URL을 매핑할 수 있기 때문에, 굳이 **URL 단위로 클래스를 분리**하는 **서블릿 방식**을 따라할 필요가 없게 된다.
+
+- 클래스 수준에서 `@RequestMapping`을 달아서 공통 URL (prefix) 을 지정하고,
+
+- 메서드 레벨에서 논리 URL을 지정해줄 수도 있다.
+
+---
+
+## 스프링 MVC - 실용적인 방식
+
+**실무에서 사용하는 최종 방식**
+
+### 예제 코드 요약
+
+- 굳이 `ModelAndView`를 직접 생성해서 반환하지 않아도 된다. String 형으로 반환하면, view의 논리명으로 인지한다.
+
+- `HttpServletRequest` 를 파라미터에 넣어서 사용할 필요가 없다. `@RequestParam` 이라는 기능을 지원한다.
+
+- `Model` 을 파라미터로 받아서 리턴용으로 사용할 수 있다.
+
+- `@RequestMapping`을 세분화하여, POST, GET, PUT, DELETE 요청을 구분할 수록 만들 수 있다.
+  
+  - 동일 URL이라도 HTTP 메서드로 추가 분기가 가능
+  
+  - `@PostMapping`, `@GetMapping` 등
+
 
