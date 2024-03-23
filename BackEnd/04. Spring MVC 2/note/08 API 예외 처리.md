@@ -197,3 +197,149 @@
 - 실제 오류 호출 결과에서는 `MessageSource` 처리된 내용이 표시된다.
 
 #### ResponseStatusException
+
+`@ResponseStatus`는 **개발자가 직접 만든 예외에서만 적용이 가능하다**.
+
+- 라이브러리의 예외에 대해서는 적용이 불가능하다.
+
+이런 경우에 대해, `ResponseStatusException`을 통해 **직접 변경할 수 없는 예외를 감싸서** 처리할 수 있다.
+
+- `throw new ResponseStatusException(HttpStatus.NOT_FOUND, "error.bad", new IllegalArgumentException());`
+
+- 위와 같이 입력하여, 개발자가 직접 코드를 수정할 수 없는 `IAE` 에 대해 `@ResponseStatus` 처리한 것과 동일하게 상태코드를 변환할 수 있다.
+
+### DefaultHandlerExceptionResolver
+
+스프링 **내부에서 발생하는 스프링 예외**를 해결한다.
+
+- 대표적으로 파라미터 바인딩 시점에 타입이 맞지 않는 경우.
+
+- `TypeMismatchException`이 발생했을 때 별다른 처리가 없으면 500이 발생하는데, 스프링 구조를 따져봤을 때 해당 예외는 99% **클라이언트의 호출 오류**라고 봐야 한다.
+
+- 이런 케이스에 대해 스프링이 400 오류로 변환하기 위해, `DefaultHandlerExceptionResovler`를 들고 다니면서 사용하고 있다.
+
+내부 로직을 살펴보면, 마찬가지로 `response.sendError()` 가 활용되고 있다.
+
+### 정리
+
+지금까지 정리한 2개의 클래스는 HTTP 상태 코드를 변경하는 쪽에 중점을 두고 있다.
+
+이러한 방식은 직접 사용하기에 다소 복잡한 면이 있고, 무엇보다도 `response`에 데이터를 직접 코딩해서 넣어야하기 때문에 번거로우며, `ModelAndView`를 리턴하는 방식이라서 API에 적절하지 못하다.
+
+스프링은 이 문제를 해결하기 위해, 가장 우선순위가 높은 클래스는 `ExceptionHandlerExceptionResolver`를 제공한다.
+
+---
+
+## API 예외 처리 - @ExceptionHandler
+
+### HTML 화면 오류 vs API 오류
+
+웹 브라우저에서 SSR로 HTML 화면을 제공하는 상황일 때는 단순히 `BasicErrorController` 를 사용하는 것으로 충분하다.
+
+하지만 **API**의 경우, 각 시스템에 따라 응답 인터페이스나 스펙이 모두 다르고, 예외 응답 자체에서 로직 제어가 필요한 경우가 많다.
+
+즉, `BasicErrorController` 하나만 사용하기는 어렵고, `HandlerExceptionResolver` 를 구현하기에는 번거로운 동시에 부적절하다.
+
+#### API 예외처리의 어려운 점
+
+- `HandlerExceptionResolver`가 `ModelAndView`를 반환해야한다는 점
+
+- `response` 객체에 직접 응답 데치터를 코딩해서 넣어야 하는 점
+
+- 특정 컨트롤러에서만 발생하는 예외를 처리하기가 어렵다는 점
+  
+  - Exception 클래스 자체에 대해서만 분기가 쉽다.
+
+### @ExceptionHandler
+
+스프링은 애노테이션 기반으로 매우 편리한 예외 처리 기능을 제공한다.
+
+이게 `ExceptionHandlerExceptionResolver` 이며, 스프링이 기본으로 바인딩하는 `ExceptionResolver` 중에 우선순위가 가장 높다.
+
+실무에서도 거의 이걸 사용하게 된다.
+
+#### @ExceptionHandler 예외 처리 방법
+
+**컨트롤러** 클래스 내부에 해당 애노테이션을 선언하고, 컨트롤러에서 발생한 예외 중에 **처리하고 싶은 예외**를 지정해주면 된다.
+
+컨트롤러에서 그 예외가 발생하면 `@ExceptionHandler` 메서드가 호출되며, 여기서 다시 예외를 던지지 않는 한 예외 처리가 종료될 수 있다.
+
+#### 예제 코드 요약
+
+- `@ExceptionHandler` 메서드의 응답 자료형은 자유롭다. 객체를 리턴하면 그게 그대로 JSON 형태로 클라이언트에게 돌아간다. `ResponseEntity` 도 사용 가능하다.
+
+- 별도로 `@ResponseStatus` 를 선언하거나 `ResponseEntity` 를 사용하지 않는다면, 클라이언트 응답은 200 코드로 돌아가게 된다. 이는 적절하지 않기 때문에, 정확한 상태코드를 명시해줄 필요가 있다.
+
+#### 우선순위
+
+**항상 자세한 것이 우선권을 가진다**.
+
+`@ExceptionHandler`에서 특정 예외를 지정했으면, 그 자식 클래스까지 처리할 수 있다.
+
+하지만 자식 클래스가 따로 지정되어 있으면, 그 쪽 `@ExceptionHandler`에서 처리하게 되어 있다.
+
+- 비즈니스 로직 상 중요한 예외를 중점적으로 지정하여 처리하고
+
+- `Exception` 자체를 통째로 잡아서 그 외 예외를 처리하면 적절하다.
+
+#### 다양한 예외
+
+`@ExceptionHandler` 에서 `{}` 안에 다양한 예외 클래스를 명시할 수 있다.
+
+#### 예외 생략
+
+예외 클래스를 생략해두면, **메서드 파라미터에서 지정한** 예외에 대해 처리한다.
+
+#### 파라미터와 응답
+
+위에 언급된 바와 같이 **굉장히 다양한 파라미터와 응답**을 지원하고 있다.
+
+거의 컨트롤러 수준의 자유도 하에 사용할 수 있다.
+
+### 실행 흐름 정리
+
+- 컨트롤러 호출 후 예외가 발생할 시, `ExceptionResolver`가 작동한다.
+
+- 그 중 가장 우선순위가 높은 `ExceptionHandlerExceptionResolver` 가 가장 먼저 호출되며, 해당 컨트롤러에서 해당 예외를 처리할 수 있는지 조회한다.
+
+- 적절한 `@ExceptionHandler`가 있다면, 핸들링 메서드가 실행되며 그에 따라 응답값이 세팅된다. 
+  
+  - 응답은 자동으로 JSON 형변환되며, 상태코드는 지정한 대로 돌아간다.
+
+### 그 외의 경우
+
+#### HTML 오류 화면
+
+`@ExceptionHandler`가 `ModelAndView`를 리턴해주면, 그대로 오류 화면 응답이 발생하게 된다.
+
+- `@RestController`에서 주로 사용해야 하기 때문에 적절한 방법은 아니다.
+
+---
+
+## API 예외 처리 - @ControllerAdvice
+
+`@ExceptionHandler`를 사용해서 예외 처리가 깔끔해질 수는 있는데, **정상 코드와 예외 처리 코드가** 하나의 클래스에 섞이게 된다는 문제가 발생한다.
+
+이 때, `@ControllerAdvice`를 적용하면 예외 처리 코드를 깔끔하게 분리할 수 있다.
+
+### @ControllerAdvice
+
+`@ControllerAdvice`는 대상으로 지정한 **여러** 컨트롤러에 `@ExceptionHandler`, `@InitBinder` 기능을 부여해준다.
+
+- 별도로 대상을 지정하지 않으면 **모든 컨트롤러에** 글로벌로 적용된다.
+
+`@RestControllerAdvice`로 사용하면 `@RestController` 처럼 처리된다.
+
+컨트롤러를 대상으로 하는 **AOP**의 성격이 존재한다.
+
+#### 대상 컨트롤러 지정 방법
+
+공식 문서에서 다양한 방법을 확인 가능하다.
+
+- 특정 **애노테이션**이 있는 컨트롤러를 지정하거나
+
+- 특정 **패키지**를 지정하거나
+
+- 아예 특정 클래스를 지정하는 방법 등
+
+
