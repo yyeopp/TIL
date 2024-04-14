@@ -20,12 +20,9 @@ public class OrderControllerV5 {
 
     @GetMapping("/v5/request")
     public String request(@RequestParam String itemId) {
-        return traceTemplate.execute("OrderController.request()", new TraceCallback<>() {
-            @Override
-            public String call() {
-                orderService.orderItem(itemId);
-                return "ok";
-            }
+        return traceTemplate.execute("OrderController.request()", () -> {
+            orderService.orderItem(itemId);
+            return "ok";
         });
     }
 }
