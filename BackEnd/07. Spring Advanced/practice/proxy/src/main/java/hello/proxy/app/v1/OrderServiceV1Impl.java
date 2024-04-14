@@ -7,8 +7,7 @@ public class OrderServiceV1Impl implements OrderServiceV1 {
 
     private final OrderRepositoryV1 orderRepository;
     @Override
-    public String orderItem(String itemId) {
+    public void orderItem(String itemId) {
         orderRepository.save(itemId);
-        return itemId;
     }
 }
