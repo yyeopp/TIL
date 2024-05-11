@@ -285,3 +285,81 @@ Optional<Car> optCar = Optional.ofNullable(car);
 따라서, Optional을 이용해 **명시적인 검사를 제거하는** 방법을 살펴볼 것이다.
 
 ### 맵으로 Optional의 값을 추출하고 변환하기
+
+```java
+Optional<Insurance> optInsurance = Optional.ofNullable(insurance);
+Optional<String> name = optInsurance.map(Insurance::getName);
+```
+
+- `map` 메서드는 스트림의 `map` 과 개념적으로 유사하다.
+  
+  - 애초에 `Optional` 객체는 요소의 개수가 한 개 이하인 데이터 컬렉션의 일종으로 생각할 수 있다.
+
+- `map` 메서드는 `Optional` 객체에 특정 프로퍼티를 조회한 뒤 이를 다시 `Optional` 로 랩핑하여 반환한다.
+  
+  - 즉, 프로퍼티를 직접 조회하는 것이 아니기 때문에 `get()`과 달리 null safe 한 방식이다.
+
+- 단, 문제점은 객체 내부의 객체 내부의 객체 내부의 프로퍼티와 같은 중첩적인 조회가 필요한 상황에서 발생한다.
+  
+  - 중첩 조회 때마다 겉에 `Optional` 이 감싸지기 때문
+
+### flatMap으로 Optional 객체 연결
+
+```java
+Optional<Person> person = Optional.of(person);
+String carInsuranceName
+    = person.flatMap(Person::getCar)
+            .flatMap(Car::getInsurance)
+            .map(Insurance::getName)
+            .orElse("Unknown");
+```
+
+- 위 문제를 `flatMap` 메서드로 해결할 수 있다.
+
+- `map` 메서드를 다중 호출함에 따라 `Optional` 이 중첩 랩핑된 상황을 **이차원 Optional**이라고 볼 수 있다.
+
+- `flatMap` 메서드는 **함수를 인수로 받아서** 생성된 각각의 스트림에서 **그 컨텐츠만 남기는** 메서드이기 때문에, 호출 결과로 만들어진 스트림이 **하나의 스트림으로 병합되어 평준화**된다.
+  
+  - 즉, 이차원 `Optional`을 일차원으로 평준화시킬 수 있다.
+
+- 그에 따라 위 코드와 같이 `Person`에서 `Car`를, `Insurance`를 반복적으로 조회한 뒤 그 속성값을 null safe하게 도출해낼 수 있다.
+
+#### 소결
+
+원래 코드는 `person.getCar().getInsurance().getName()` 이였는데, 위와 같이 바꿈으로써
+
+- 별도의 조건 분기문 없이 null safe하면서도 쉽게 이해할 수 있는 코드를 완성했다.
+
+`Optional`을 사용함에 따라, 도메인 모델 자체에 대한 **암묵적인 지식**에 의존하지 않으면서도 명시적으로 형식 시스템을 정의할 수 있다.
+
+### 디폴트 액션과 Optional 언랩
+
+`Optional` 클래스는 해당 인스턴스에 포함된 값을 읽는 다양한 방법을 제공한다.
+
+- `get()` : 가장 간단하지만 가장 위험한 메서드.
+  
+  - 랩핑된 값이 있으면 반환하고, 없으면 `NoSuchElementException`을 발생시킨다.
+  
+  - null check가 필요하기 때문에 권장되지 않는다.
+
+- `orElse` : `Optional`이 값을 포함하지 않을 때 기본값을 제공할 수 있다.
+
+- `orElseGet` : `orElse` 에 대응하되, 인수로 Supplier 함수를 넣어 **게으르게** 프로퍼티를 조회할 수 있다.
+
+- `orElseThrow` : `Optional`이 비어있을 때 예외를 발생시키되, 발생시키는 예외 종류를 선택할 수 있다.
+
+- `ifPresent` : 값이 존재할 때, 인수로 `Consumer` 함수를 넣어 동작을 실행할 수 있다.
+
+### 필터로 특정값 거르기
+
+`Optional`은 `filter` 메서드를 지원한다. 
+
+- 말그래도 객체의 프로퍼티에 대한 검증을 실행하는 함수로, **프레디케이트**를 인수로 받아 실행된다.
+
+- 프레디케이트와 일치하면 그 값을 반환하고, 그렇지 않으면 빈 `Optional` 이 반환된다.
+
+```java
+Optional<Insurance> = optInsurance;
+optInsurance.filter(insurance -> "CambridgeInsurance".equals(insurance.getName())
+            .ifPresent(x -> log.info("ok"));
+```
