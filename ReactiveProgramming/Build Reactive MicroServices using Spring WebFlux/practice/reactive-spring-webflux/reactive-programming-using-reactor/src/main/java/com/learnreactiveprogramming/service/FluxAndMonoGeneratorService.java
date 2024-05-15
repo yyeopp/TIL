@@ -7,7 +7,7 @@ import reactor.core.publisher.Mono;
 public class FluxAndMonoGeneratorService {
 
     public Flux<String> namesFlux() {
-        return Flux.just("alex", "ben", "chloe");
+        return Flux.just("alex", "ben", "chloe").log();
     }
 
     public Mono<String> namesMono() {
@@ -18,12 +18,14 @@ public class FluxAndMonoGeneratorService {
 
         FluxAndMonoGeneratorService fluxAndMonoGeneratorService = new FluxAndMonoGeneratorService();
 
-        fluxAndMonoGeneratorService.namesFlux().subscribe((name) -> {
-            System.out.println("Name is : " + name);
-        });
+        fluxAndMonoGeneratorService.namesFlux()
+                .subscribe((name) -> {
+                    System.out.println("Name is : " + name);
+                });
 
-        fluxAndMonoGeneratorService.namesMono().subscribe((name) -> {
-            System.out.println("Name is : " + name);
-        });
+        fluxAndMonoGeneratorService.namesMono()
+                .subscribe((name) -> {
+                    System.out.println("Name is : " + name);
+                });
     }
 }
