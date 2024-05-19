@@ -9,23 +9,24 @@ import reactor.core.publisher.Mono;
 import java.time.Duration;
 
 @RestController
-public class FluxMonoController {
-
+public class FluxAndMonoController {
 
     @GetMapping("/flux")
-    public Flux<Integer> flux(){
-        return Flux.just(1,2,3)
+    public Flux<Integer> flux() {
+        return Flux.just(1, 2, 3)
                 .log();
     }
 
     @GetMapping("/mono")
-    public Mono<String> helloWorldMono(){
-        return Mono.just("hello-world");
+    public Mono<String> helloWorldMono() {
+        return Mono.just("Hello-World")
+                .log();
     }
 
     @GetMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<Long> stream(){
+    public Flux<Long> stream() {
         return Flux.interval(Duration.ofSeconds(1))
                 .log();
     }
+
 }
