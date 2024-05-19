@@ -131,14 +131,14 @@ Project Reactor를 테스트코드에서 다루기 위해서는`build.gradle` �
                 .flatMap(this::splitStringWithDelay)
                 .log();
     }
-    
+
     public Flux<String> splitStringWithDelay(String name) {
         var charArray = name.split("");
         var delay = new Random().nextInt(1000);
         return Flux.fromArray(charArray)
                 .delayElements(Duration.ofMillis(delay));
     }
-    
+
     @Test
     void namesFlux_flatmap_async() {
         int stringLength = 3;
@@ -180,5 +180,99 @@ Project Reactor를 테스트코드에서 다루기 위해서는`build.gradle` �
 - **앞 요소의 연산 처리가 종료된 후 그 다음 요소를 연산**한다는 점에서 `flatMap`에 비해 **전체적인 처리속도가 매우 느려진다**는 차이점이 발생한다.
 
 서비스 구현 시 양자 간의 차이점을 정확히 인지하고 필요에 따라 사용하는 것이 중요.
+
+### Mono 연산
+
+#### flatMap()
+
+Flux에서 사용하는 것과 동일하나,`Mono`이기 때문에 연산 결과가 **단일** 건이라는 점이 다르다.
+
+`map()` 과 달리 데이터스트림을 **평준화**시킨다는 점에서 유의하여 사용한다.
+
+#### flatMapMany()
+
+`Mono` 형태의 데이터 스트림을 `Flux` 형태로 변환시킨다.
+
+### 그 외 연산
+
+#### transform()
+
+`@FunctionalInterface` 를 인자로 입력받아 그에 해당하는 파이프라인 작업을 수행하는 메서드.
+
+`filter`나 `map` 같은 일련의 동작이 반복된다면, `@FunctionalInterface`로 캡슐화하여 재사용하는 데 사용한다.
+
+#### defaultIfEmpty()
+
+반응형 스트림의 연산값이 비어있는 경우 리턴될 값을 지정하는 것.
+
+#### switchIfEmpty()
+
+반응형 스트림의 연산값이 비어있는 경우 **별도의 스트림으로 대체**하는 것.
+
+---
+
+## 반응형 스트림 결합
+
+### 개요
+
+`Mono`와 `Flux` 에 해당하는 여러 개의 반응형 스트림을 결합하는 일은 애플리케이션 구현 과정에서 굉장히 흔하다.
+
+- 서로 다른 API나 DB를 여럿 조회하여 그 결과를 하나로 합치는 작업이 대표적
+
+이러한 작업에 사용될 Reactor API를 분석한다.
+
+### 연산자
+
+#### concat과 concatWith
+
+두 개의 반응형 스트림을 하나로 결합할 때 사용한다.
+
+단, **순차적인 결합**이 필요할 때 사용하는 함수.
+
+- 두 개의 스트림을 결합할 때,
+
+- 앞쪽 스트림에 대한 subscribe가 끝나야 뒤쪽 스트림에 대한 subscribe를 처리하여
+
+- 양 결과를 조합한다.
+
+`concat()`은 `Flux`에서만 사용되고,
+
+`concatWith`은 `Flux` `Mono` 양쪽에서 사용한다.
+
+- 두 개의 `Mono`를 합친다는 점에서 `Flux`를 반환한다.
+
+#### merge와 mergeWith
+
+두 개의 Publisher를 하나로 합치는 데에 사용한다.
+
+이는 Subscriber 쪽에서 **두 개의 Publisher**를 **동시에 구독**하기 때문에 가능한 일이다.
+
+- `concat` 계열에서는 **순차적으로 구독**했다고 보면 된다.
+
+- `merge`를 사용할 시, 각 Publisher에서 데이터를 주는 즉시 Subscribe하기 때문에 **순서가 보장되지 않는다.**
+
+마찬가지로 `mergeWith`만 양쪽에서 사용 가능하다.
+
+- `Flux`를 반환함
+
+#### mergeSequential
+
+`concat`과 `merge`를 합친 듯하게 작동한다.
+
+두 Publisher를 동시에 구독하지만, **합치는 시점에서** **순서를 보장하게 된다.**
+
+#### zip과 zipWith
+
+**여러** 개의 Publisher를 하나로 합치는 데 사용하는데, 부가적으로 **람다 표현식**으로 이용해 **각 스트림에서 나온 요소들 간의 조합**을 가능케 한다.
+
+인자로 입력된 모든 Publisher에서 요소가 하나씩 뽑혀나오는 것을 **기다렸다가** 람다로 입력된 표현식을 수행하여 Subscribe하는 방식으로,
+
+Publisher들 중 하나가 `onComplete()`를 할 때까지 수행된다.
+
+- 입력된 Publisher가 2개일 경우에만 람다 표현식 사용이 가능하고, 그 이상의 Publisher인 경우 `map` 함수를 이용해 **튜플** 표현식으로 스트림 결합을 처리한다.
+
+- 최대 8개의 Publisher를 입력할 수 있도록 구현되어 있다.
+
+- `zipWith`의 경우 `Mono`를 반환한다는 특징이 있다.
 
 
