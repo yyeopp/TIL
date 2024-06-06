@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import javax.validation.Valid;
+
 @RestController
 @RequestMapping("/v1")
 @RequiredArgsConstructor
@@ -29,13 +31,13 @@ public class MoviesInfoController {
 
     @PostMapping("/movieInfos")
     @ResponseStatus(HttpStatus.CREATED)
-    public Mono<MovieInfo> addMovieInfo(@RequestBody MovieInfo movieInfo) {
+    public Mono<MovieInfo> addMovieInfo(@RequestBody @Valid MovieInfo movieInfo) {
 
         return moviesInfoService.addMovieInfo(movieInfo).log();
     }
 
     @PutMapping("/movieInfos/{id}")
-    public Mono<MovieInfo> updateMovieInfo(@RequestBody MovieInfo updatedMovieInfo, @PathVariable String id) {
+    public Mono<MovieInfo> updateMovieInfo(@RequestBody @Valid MovieInfo updatedMovieInfo, @PathVariable String id) {
 
         return moviesInfoService.updateMovieInfo(updatedMovieInfo, id).log();
     }

@@ -255,4 +255,42 @@ Java에서 MongoDB에 쉽게 접근할 수 있도록 개발된 인터페이스�
 
 이번에는 `Mock`을 이용하여 다른 계층이 **존재하는 것처럼 만들어두고** 보다 제대로 된 단위테스트를 구현한다.
 
+### mockito
+
+단위테스트에 사용할 `MockBean` 객체 관련 라이브러리다.
+
+컨트롤러 단위테스트를 위해서는 서비스 객체를 Mock으로 생성할 필요가 있는데,
+
+`@MockBean` 을 이용하여 바인딩하면 마치 `@Autowired`된 것과 같이 사용할 수 있다.
+
+### 예제 코드
+
+```java
+    @Test
+    void getAllMovieInfos() {
+
+        var movieInfos = List.of(new MovieInfo(null, "Batman Begins",
+                        2005, List.of("Christian Bale", "Michael Cane"), LocalDate.parse("2005-06-15")),
+                new MovieInfo(null, "The Dark Knight",
+                        2008, List.of("Christian Bale", "HeathLedger"), LocalDate.parse("2008-07-18")),
+                new MovieInfo("abc", "Dark Knight Rises",
+                        2012, List.of("Christian Bale", "Tom Hardy"), LocalDate.parse("2012-07-20")));
+
+        when(moviesInfoServiceMock.getAllMovieInfos()).thenReturn(Flux.fromIterable(movieInfos));
+
+        webTestClient
+                .get()
+                .uri(MOVIES_INFO_URL)
+                .exchange()
+                .expectStatus()
+                .is2xxSuccessful()
+                .expectBodyList(MovieInfo.class)
+                .hasSize(3);
+    }
+```
+
+- `when()` 은 Mock 객체가 특정 메서드로 호출받았을 때 어떤 응답을 주면 되는지 지정해주는 역할을 수행한다.
+
+- 결과적으로, 위와 같이 작성하면 **실제 DB를 전혀 연계하지 않고도** 컨트롤러가 서비스를 거쳐 데이터를 엑세스한 것과 같은 단위테스트를 구현할 수 있다.
+
 

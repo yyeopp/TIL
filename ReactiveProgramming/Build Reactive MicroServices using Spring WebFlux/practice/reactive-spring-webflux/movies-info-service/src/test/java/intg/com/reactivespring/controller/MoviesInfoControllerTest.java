@@ -129,4 +129,5 @@ class MoviesInfoControllerTest {
                 .expectBodyList(MovieInfo.class)
                 .hasSize(2);
     }
+
 }
