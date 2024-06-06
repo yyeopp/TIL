@@ -28,6 +28,7 @@ class MoviesInfoControllerTest {
     WebTestClient webTestClient;
 
     static String MOVIES_INFO_URL = "/v1/movieInfos/";
+
     @BeforeEach
     void setUp() {
         var movieInfos = List.of(new MovieInfo(null, "Batman Begins",
@@ -42,9 +43,10 @@ class MoviesInfoControllerTest {
     }
 
     @AfterEach
-    void tearDown () {
+    void tearDown() {
         movieInfoRepository.deleteAll().block();
     }
+
     @Test
     void addMovieInfo() {
 
@@ -92,20 +94,39 @@ class MoviesInfoControllerTest {
 
     @Test
     void updateMovieInfo() {
-
-        var movieInfo = new MovieInfo(null, "Batman Begins",
+        var movieInfoId = "abc";
+        var movieInfo = new MovieInfo(null, "Dark Knight Rises1",
                 2005, List.of("Christian Bale", "Michael Cane"), LocalDate.parse("2005-06-15"));
 
-        webTestClient.post()
-                .uri(MOVIES_INFO_URL)
+        webTestClient.put()
+                .uri(MOVIES_INFO_URL + movieInfoId)
                 .bodyValue(movieInfo)
                 .exchange()
-                .expectStatus().isCreated()
+                .expectStatus().is2xxSuccessful()
                 .expectBody(MovieInfo.class)
                 .consumeWith(movieInfoEntityExchangeResult -> {
-                    var savedMovieInfo = movieInfoEntityExchangeResult.getResponseBody();
-                    assert savedMovieInfo != null;
-                    assert savedMovieInfo.getMovieInfoId() != null;
+                    var updatedMovieInfo = movieInfoEntityExchangeResult.getResponseBody();
+                    assert updatedMovieInfo != null;
+                    assert updatedMovieInfo.getMovieInfoId() != null;
+                    assertEquals("Dark Knight Rises1", updatedMovieInfo.getName());
                 });
+    }
+
+    @Test
+    void deleteMovieInfo() {
+        var movieInfoId = "abc";
+
+        webTestClient.delete()
+                .uri(MOVIES_INFO_URL + movieInfoId)
+                .exchange()
+                .expectStatus().isNoContent()
+                .expectBody(Void.class);
+
+        webTestClient.get()
+                .uri(MOVIES_INFO_URL)
+                .exchange()
+                .expectStatus().is2xxSuccessful()
+                .expectBodyList(MovieInfo.class)
+                .hasSize(2);
     }
 }

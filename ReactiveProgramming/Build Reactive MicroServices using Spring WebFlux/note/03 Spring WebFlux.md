@@ -156,9 +156,9 @@ Flux와 유사하다.
 
 ---
 
-## MongoDB를 사용한 Reactive Web 구성과 통합테스트
+## MongoDB를 사용한 Reactive Web 구성과 단위테스트
 
-DB와의 연계 부분까지 검증하는 통합테스트도 JUnit을 이용해 편리하게 진행할 수 있다.
+DB 연계에 대한 단위테스트도 JUnit을 이용해 편리하게 진행할 수 있다.
 
 ### 세팅
 
@@ -212,5 +212,47 @@ Java에서 MongoDB에 쉽게 접근할 수 있도록 개발된 인터페이스�
 - 위와 같은 방식으로, `ReactiveMongoRepository`가 제공하는 데이터 엑세스 함수와 Reactive 반환형에 대해 테스트 진행이 가능하다.
 
 ---
+
+## Spring WebFlux 통합테스트
+
+지금까지는 특수 애노테이션을 이용하여 각 레이어에 대한 단위테스트를 진행했다면,
+
+이제 `@SpringBootTest` 를 이용한 **통합테스트**를 구현한다.
+
+### 예제 코드 요약
+
+- 뻔한 3레이어 애플리케이션을 MongoDB를 사용해 제작하고,
+
+- GET, POST, PUT, DELETE 엔드포인트에 대해 `SpringBootTest` 를 작성한다.
+
+- 결과적으로 보면, `WebFluxTest`와 `DataMongoTest`를 결합해둔 형태가 된다.
+
+```java
+    @Test
+    void deleteMovieInfo() {
+        var movieInfoId = "abc";
+
+        webTestClient.delete()
+                .uri(MOVIES_INFO_URL + movieInfoId)
+                .exchange()
+                .expectStatus().isNoContent()
+                .expectBody(Void.class);
+
+        webTestClient.get()
+                .uri(MOVIES_INFO_URL)
+                .exchange()
+                .expectStatus().is2xxSuccessful()
+                .expectBodyList(MovieInfo.class)
+                .hasSize(2);
+    }
+```
+
+---
+
+## Spring WebFlux 단위테스트
+
+이전까지 작성한 단위테스트는 다른 계층을 아예 무시했다면,
+
+이번에는 `Mock`을 이용하여 다른 계층이 **존재하는 것처럼 만들어두고** 보다 제대로 된 단위테스트를 구현한다.
 
 

@@ -3,6 +3,7 @@ package com.reactivespring.service;
 import com.reactivespring.domain.MovieInfo;
 import com.reactivespring.repository.MovieInfoRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.mongodb.core.aggregation.ArithmeticOperators;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -33,5 +34,9 @@ public class MoviesInfoService {
                     movieInfo.setYear(updatedMovieInfo.getYear());
                     return movieInfoRepository.save(movieInfo);
                 });
+    }
+
+    public Mono<Void> deleteMovieInfo(String id) {
+        return movieInfoRepository.deleteById(id);
     }
 }
