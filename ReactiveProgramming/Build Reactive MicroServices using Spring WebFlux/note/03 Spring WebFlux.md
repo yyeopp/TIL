@@ -156,4 +156,61 @@ Flux와 유사하다.
 
 ---
 
+## MongoDB를 사용한 Reactive Web 구성과 통합테스트
+
+DB와의 연계 부분까지 검증하는 통합테스트도 JUnit을 이용해 편리하게 진행할 수 있다.
+
+### 세팅
+
+#### de.flapdoodle.embed.mongo
+
+해당 라이브러리를 testImplementation 으로 추가하면, 
+
+실제 MongoDB 서버를 설치 및 세팅하지 않아도 **테스트 환경에서** **임베디드 MongoDB**를 구축하여 사용할 수 있다.
+
+#### @DataMongoTest
+
+MongoDB 관련 데이터 엑세스 계층을 테스트하는 데 특화된 애노테이션으로, **데이터 엑세스 관련 Bean만 로드**한다.
+
+- `@WebFluxTest`랑 성격이 비슷하다.
+
+임베디드 MongoDB 라이브러리와 호환되어, 테스트를 빠르고 쉽게 수행할 수 있게 해준다.
+
+#### ReactiveMongoRepository
+
+Java에서 MongoDB에 쉽게 접근할 수 있도록 개발된 인터페이스다.
+
+- 사용방법이 JPA와 유사하다.
+
+데이터 엑세스 작업이 **반응형**으로 수행된다는 점에서 중요하다.
+
+- CRUD 작업이 별도로 `block` 하지 않는 이상 **비동기적**으로 처리되며,
+
+- 반환 타입도 Mono 혹은 Flux 이다.
+
+### 테스트 코드 작성 관련
+
+- DB를 임시로 연동하여 테스트하기 때문에, `@BeforeEach`와 `@AfterEach`를 사용하여 **적절한 테스트 데이터**를 입력 및 삭제해줄 필요가 있다.
+
+```java
+    @Test
+    void saveMovieInfo() {
+        var movieInfo = new MovieInfo(null, "Batman Begins1",
+                        2005, List.of("Christian Bale", "Michael Cane"), LocalDate.parse("2005-06-15"));
+
+        var moviesInfoMono = movieInfoRepository.save(movieInfo).log();
+
+        StepVerifier.create(moviesInfoMono)
+                .assertNext(movieInfo1 -> {
+                    assertNotNull(movieInfo1.getMovieInfoId());
+                    assertEquals("Batman Begins1", movieInfo1.getName());
+                })
+                .verifyComplete();
+    }
+```
+
+- 위와 같은 방식으로, `ReactiveMongoRepository`가 제공하는 데이터 엑세스 함수와 Reactive 반환형에 대해 테스트 진행이 가능하다.
+
+---
+
 
