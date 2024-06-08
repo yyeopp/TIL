@@ -189,9 +189,4 @@ public class MoviesInfoControllerUnitTest {
                 });
     }
 
-
-
-
-
-
 }

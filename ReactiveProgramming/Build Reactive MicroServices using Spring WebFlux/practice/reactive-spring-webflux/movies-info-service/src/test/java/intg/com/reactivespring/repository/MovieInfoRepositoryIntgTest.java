@@ -97,4 +97,19 @@ class MovieInfoRepositoryIntgTest {
                 .expectNextCount(2)
                 .verifyComplete();
     }
+
+    @Test
+    void findByYear() {
+        var moviesInfoFlux = movieInfoRepository.findByYear(2005).log();
+        StepVerifier.create(moviesInfoFlux)
+                .expectNextCount(1)
+                .verifyComplete();
+    }
+    @Test
+    void findByName() {
+        var moviesInfoFlux = movieInfoRepository.findByName("Batman Begins").log();
+        StepVerifier.create(moviesInfoFlux)
+                .expectNextCount(1)
+                .verifyComplete();
+    }
 }
