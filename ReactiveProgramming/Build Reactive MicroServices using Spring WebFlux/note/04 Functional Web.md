@@ -168,11 +168,11 @@ Functional Web은 Spring WebFlux에서 RESTFUL API 를 구축하는 프로그래
 
 Functional Web 전체를 크게 두 가지 모듈로 추상화하여 구분할 수 있다.
 
-- Router : 클라이언트에 대한 엔드포인트
+- **Router**: 클라이언트에 대한 엔드포인트
   
   - `@RequestMapping` 을 생각하면 됨
 
-- Handler : 요청에 대한 로직을 처리
+- **Handler**: 요청에 대한 로직을 처리
 
 ### Functional Web의 장단점
 
@@ -190,4 +190,88 @@ Functional Web 전체를 크게 두 가지 모듈로 추상화하여 구분할 �
 
 - Exception handling 처리도 상이함
 
+### Functional Web 개발
 
+#### flatMap을 이용한 비동기 작업 체이닝
+
+> GPT 참조
+
+`flatMap`을 사용하는 이유는 비동기 작업의 결과를 체이닝하고 처리하기 위해서입니다. 구체적으로 `Mono`나 `Flux`와 같은 리액티브 스트림에서는 비동기적으로 실행되는 작업의 결과를 처리하는 방식이 중요합니다. `flatMap`은 비동기 작업의 결과로 또 다른 `Mono`나 `Flux`를 반환할 때 유용합니다.
+
+##### `flatMap`을 사용하는 이유
+
+1. **비동기 작업 체이닝**:
+   
+   - `flatMap`은 각 비동기 작업의 결과를 기다렸다가, 그 결과를 사용하여 다음 비동기 작업을 수행할 수 있게 합니다.
+   - 예를 들어, `request.bodyToMono(Review.class)`는 비동기적으로 요청 본문을 `Review` 객체로 변환합니다. 변환된 `Review` 객체를 저장하기 위해 `reviewReactiveRepository.save(review)`를 호출하는데, 이는 또 다른 비동기 작업입니다.
+
+2. **중첩된 비동기 스트림 처리**:
+   
+   - `map`은 변환 작업을 수행하지만, 변환된 결과가 `Mono`나 `Flux`일 때는 중첩된 `Mono<Mono<T>>` 또는 `Flux<Flux<T>>`를 생성합니다. 이를 펼쳐서 단일 `Mono<T>` 또는 `Flux<T>`로 만들기 위해 `flatMap`을 사용합니다.
+
+3. **정렬된 비동기 작업**:
+   
+   - `flatMap`을 사용하면 이전 작업이 완료된 후에만 다음 작업이 실행됩니다. 이를 통해 작업의 순서를 보장할 수 있습니다.
+
+`flatMap`을 사용함으로써 비동기 작업의 결과를 자연스럽게 연결하고, 중첩된 비동기 스트림을 피할 수 있습니다.
+
+#### 예제 코드
+
+```java
+    @Bean
+    public RouterFunction<ServerResponse> reviewsRoute(ReviewHandler reviewHandler) {
+
+        return RouterFunctions.route()
+                .nest(path("/v1/reviews"), builder -> {
+                    builder.POST("", reviewHandler::addReview)
+                            .GET("", (request -> reviewHandler.getReviews()))
+                            .PUT("/{id}", reviewHandler::updateReview);
+                })
+                .GET("/v1/helloworld",
+                        (request -> ServerResponse.ok().bodyValue("helloworld")))
+                .build();
+    }
+    
+    public Mono<ServerResponse> addReview(ServerRequest request) {
+        return request.bodyToMono(Review.class)
+                .flatMap(reviewReactiveRepository::save)
+                .flatMap(ServerResponse.status(HttpStatus.CREATED)::bodyValue);
+    }
+
+    public Mono<ServerResponse> getReviews() {
+        return ServerResponse.ok().body(reviewReactiveRepository.findAll(), Review.class);
+    }
+
+    public Mono<ServerResponse> updateReview(ServerRequest serverRequest) {
+        var reviewId = serverRequest.pathVariable("id");
+
+        return reviewReactiveRepository.findById(reviewId)
+                .flatMap(review ->
+                        serverRequest.bodyToMono(Review.class).map(reqReview -> {
+                            review.setComment(reqReview.getComment());
+                            review.setRating(reqReview.getRating());
+                            return review;
+                        }))
+                .flatMap(reviewReactiveRepository::save)
+                .flatMap(savedReview -> ServerResponse.ok().bodyValue(savedReview))
+                .log();
+    }
+```
+
+- 함수형 프로그래밍의 사상이 전면적으로 적용된다.
+  
+  - 메서드 참조, 함수형 인터페이스, 람다 등
+
+- `Router`는 `Controller`를 대체한다.
+  
+  - `route()`나 `nest()` 같은 메서드, `POST` `GET` 등
+
+- `Handler`는 `Service`를 대체한다.
+  
+  - 반응형 응답값을 리턴하는 것에 주의해야 하고,
+  
+  - 서비스 로직을 처리함에 있어서 비동기 특성을 정확히 활용해야 한다.
+    
+    - 의존하는 Repository가 Reactive에 해당해야 함
+    
+    - `flatMap` 등을 정확히 사용해야 함
