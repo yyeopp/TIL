@@ -97,6 +97,19 @@ class ReviewsIntgTest {
                     assertEquals("Not an Awesome Movie", updatedReview.getComment());
                 });
     }
+
+    @Test
+    void updateReview_NotFound() {
+        //given
+        var reviewUpdate = new Review(null, 1L, "Not an Awesome Movie", 8.0);
+        //when
+        webTestClient
+                .put()
+                .uri(REVIEWS_URL+"/{id}", "abc")
+                .bodyValue(reviewUpdate)
+                .exchange()
+                .expectStatus().isNotFound();
+    }
     @Test
     void deleteReview() {
         var review = new Review(null, 1L, "Awesome Movie", 9.0);

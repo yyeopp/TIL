@@ -196,7 +196,7 @@ Functional Web 전체를 크게 두 가지 모듈로 추상화하여 구분할 �
 
 ### flatMap을 이용한 비동기 작업 체이닝
 
-> GPT 참조
+> Chat GPT
 
 `flatMap`을 사용하는 이유는 비동기 작업의 결과를 체이닝하고 처리하기 위해서입니다. 구체적으로 `Mono`나 `Flux`와 같은 리액티브 스트림에서는 비동기적으로 실행되는 작업의 결과를 처리하는 방식이 중요합니다. `flatMap`은 비동기 작업의 결과로 또 다른 `Mono`나 `Flux`를 반환할 때 유용합니다.
 
@@ -331,8 +331,108 @@ nt
     }
 ```
 
+### Bean Validation
 
+Controller를 사용할 당시에는 `@Valid` 애노테이션을 이용하여 Bean Validation 처리를 진행했다.
 
----
+Functional Web의 경우 다른 방법을 사용해야 한다.
+
+#### Validator
+
+Validation 처리는 Router가 아닌 Handler에서 이루어진다.
+
+`javax.validation.Validator` 에 직접 의존하여 validation을 진행한다.
+
+```java
+   public Mono<ServerResponse> addReview(ServerRequest request) {
+        return request.bodyToMono(Review.class)
+                .doOnNext(this::validate)
+                .flatMap(reviewReactiveRepository::save)
+                .flatMap(ServerResponse.status(HttpStatus.CREATED)::bodyValue);
+   }
+   
+   private void validate(Review review) {
+        var constraintViolations = validator.validate(review);
+        log.info("constraintViolations : {}", constraintViolations);
+        if (!constraintViolations.isEmpty()) {
+            var errorMessage = constraintViolations.stream()
+                    .map(ConstraintViolation::getMessage)
+                    .sorted()
+                   .collect(Collectors.joining(","));
+            throw new ReviewDataException(errorMessage);
+        }
+    }
+```
+
+- 위와 같이, `request`에 대해 `bodyToMono`로 Bean을 읽어낸 뒤
+
+- `doOnNext()` 메서드를 이용하여 validation 처리를 진행한다.
+  
+  - `doOnNext` 는 **데이터 변환 없이** 비동기적으로 태스크를 수행하는 메서드.
+
+- `validate` 메서드의 경우 유틸 클래스로 따로 관리하면 적절할 것.
+
+### Global Error Handling
+
+Controller를 사용하는 경우 `@ControllerAdvice` 클래스에서 전역으로 오류 처리가 가능했다.
+
+Functional Web에서 사용하는 방법은 이와 상이하다.
+
+#### ErrorWebExceptionHandler
+
+`ErrorWebExceptionHandler`는 Functional Web에서 전역 오류 처리를 담당하는 인터페이스로,
+
+Default 구현체가 존재하는 가운데 직접 implements 하여 커스텀하는 것도 가능하다.
+
+```java
+@Component
+@Slf4j
+public class GlobalErrorHandler implements ErrorWebExceptionHandler {
+
+    @Override
+    public Mono<Void> handle(ServerWebExchange exchange, Throwable ex) {
+        log.error("Exception message is {}", ex.getMessage(), ex);
+        DataBufferFactory dataBufferFactory = exchange.getResponse().bufferFactory();
+        var errorMessage = dataBufferFactory.wrap(ex.getMessage().getBytes());
+
+        if (ex instanceof ReviewDataException) {
+            exchange.getResponse().setStatusCode(HttpStatus.BAD_REQUEST);
+            return exchange.getResponse().writeWith(Mono.just(errorMessage));
+        }
+        exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
+        return exchange.getResponse().writeWith(Mono.just(errorMessage));
+    }
+}
+```
+
+- 위의 경우 전역으로 아래의 처리를 수행할 수 있다.
+  
+  - 클라이언트에게 오류 메시지를 수집하여 전달
+  
+  - `ReviewDataException`에 대해 400오류 처리
+
+#### DataBufferFactory
+
+> ChatGPT
+
+Spring WebFlux에서 `DataBufferFactory`를 사용하여 에러 메시지를 생성하는 이유는, WebFlux의 논블로킹, 리액티브 아키텍처에 맞춰 데이터를 효율적으로 처리하기 위함입니다. `DataBufferFactory`는 데이터 버퍼를 생성하고 관리하는 데 도움을 주며, 이는 특히 HTTP 응답 본문을 작성할 때 유용합니다.
+
+##### 이유 및 역할
+
+1. **비동기 데이터 처리**:
+   
+   - Spring WebFlux는 비동기 논블로킹 프로그래밍 모델을 사용합니다. `DataBufferFactory`는 이러한 모델에 적합한 데이터 버퍼를 생성하여 효율적인 비동기 데이터 처리를 지원합니다.
+
+2. **효율적인 메모리 관리**:
+   
+   - `DataBufferFactory`는 데이터를 직접 버퍼에 담아 처리하기 때문에 메모리 사용이 효율적입니다. 이는 특히 대규모 트래픽을 처리할 때 중요한 역할을 합니다.
+
+3. **일관된 인터페이스**:
+   
+   - Spring WebFlux는 다양한 데이터 소스 및 대상(파일, 네트워크 등)과의 상호 작용을 지원합니다. `DataBufferFactory`를 사용하면 이러한 다양한 소스와 일관된 방식으로 데이터 버퍼를 생성하고 사용할 수 있습니다.
+
+4. **HTTP 응답 작성**:
+   
+   - `ServerHttpResponse`와 같은 WebFlux 구성 요소는 `DataBuffer`를 사용하여 응답 본문을 작성합니다. `DataBufferFactory`를 사용하면 이 과정이 일관되고 효율적으로 이루어집니다.
 
 
