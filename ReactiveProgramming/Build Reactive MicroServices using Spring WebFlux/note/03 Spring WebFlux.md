@@ -301,4 +301,20 @@ Java에서 MongoDB에 쉽게 접근할 수 있도록 개발된 인터페이스�
 
 이에 WebFlux에서도 `ResponseEntity`를 조합하여 사용하는 것이 유효하며, `Mono`, `Flux`와 적절히 조합할 시 비동기 API를 구성하는 데에도 지장을 주지 않을 수 있다.
 
+```java
+    @GetMapping("/movieInfos/{id}")
+    public Mono<ResponseEntity<MovieInfo>> getMovieInfoById(@PathVariable String id) {
+        return moviesInfoService.getMovieInfoById(id)
+                .map(movieInfo -> ResponseEntity.ok().body(movieInfo))
+                .switchIfEmpty(Mono.just(ResponseEntity.notFound().build()))
+                .log();
+    }
+```
+
+- 위와 같이 `Mono<ResponseEntity<VO>>` 형태로 컨트롤러의 응답값을 구성한다.
+
+- `Mono`가 리턴값이기 때문에, 비동기 논블로킹 구조는 그대로 가져가면서도
+
+- `ResponseEntity`를 활용한 HTTP Status 분기처리를 손쉽게 구현할 수 있다.
+
 
