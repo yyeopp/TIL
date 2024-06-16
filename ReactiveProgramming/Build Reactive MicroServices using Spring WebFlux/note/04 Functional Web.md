@@ -190,15 +190,17 @@ Functional Web 전체를 크게 두 가지 모듈로 추상화하여 구분할 �
 
 - Exception handling 처리도 상이함
 
-### Functional Web 개발
+---
 
-#### flatMap을 이용한 비동기 작업 체이닝
+## Functional Web 개발
+
+### flatMap을 이용한 비동기 작업 체이닝
 
 > GPT 참조
 
 `flatMap`을 사용하는 이유는 비동기 작업의 결과를 체이닝하고 처리하기 위해서입니다. 구체적으로 `Mono`나 `Flux`와 같은 리액티브 스트림에서는 비동기적으로 실행되는 작업의 결과를 처리하는 방식이 중요합니다. `flatMap`은 비동기 작업의 결과로 또 다른 `Mono`나 `Flux`를 반환할 때 유용합니다.
 
-##### `flatMap`을 사용하는 이유
+#### `flatMap`을 사용하는 이유
 
 1. **비동기 작업 체이닝**:
    
@@ -215,7 +217,7 @@ Functional Web 전체를 크게 두 가지 모듈로 추상화하여 구분할 �
 
 `flatMap`을 사용함으로써 비동기 작업의 결과를 자연스럽게 연결하고, 중첩된 비동기 스트림을 피할 수 있습니다.
 
-#### 예제 코드
+### 예제 코드
 
 ```java
     @Bean
@@ -275,3 +277,62 @@ Functional Web 전체를 크게 두 가지 모듈로 추상화하여 구분할 �
     - 의존하는 Repository가 Reactive에 해당해야 함
     
     - `flatMap` 등을 정확히 사용해야 함
+
+### 단위테스트 작성
+
+통합테스트는 앞서 진행했던 것과 사실상 동일한 구조다.
+
+단위테스트의 경우, Controller가 사라졌기 때문에 컴포넌트 세팅이 다소 상이하다.
+
+```java
+@WebFluxTest
+@ContextConfiguration(classes = {ReviewRouter.class, ReviewHandler.class})
+@AutoConfigureWebTestClient
+class ReviewsUnitTest {
+
+    @MockBean
+    private ReviewReactiveRepository reviewReactiveRepository;
+nt
+```
+
+- `@WebFluxTest` 를 사용하는 건 동일한데, `Controller`가 없으므로 지정하지 않는다.
+
+- 대신, Functional Web에서 엔드포인트로 동작하는 Router 클래스와 그에 대한 Handler 클래스를 등록해준다.
+  
+  - `@ContextConfiguration` 에서 해당 클래스를 명시해주는 방식
+
+- `@MockBean`을 사용해서 Repository 클래스를 꾸며내고,
+
+- 테스트코드 내에서 `when` 을 활용하는 방식은 이전과 동일하다.
+  
+  - `isA`나 `any` 같은 각종 유틸 메서드에 대해 숙지해야 한다.
+
+```java
+   @Test
+    void updateReview() {
+        var reviewUpdate = new Review(null, 1L, "Not an Awesome Movie", 8.0);
+
+        when(reviewReactiveRepository.save(isA(Review.class))).thenReturn(Mono.just(new Review("abc", 1L, "Not an Awesome Movie", 8.0)));
+        when(reviewReactiveRepository.findById((String) any())).thenReturn(Mono.just(new Review("abc", 1L, "Awesome Movie", 9.0)));
+
+        webTestClient
+                .put()
+                .uri("/v1/reviews/{id}", "abc")
+                .bodyValue(reviewUpdate)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(Review.class)
+                .consumeWith(reviewResponse -> {
+                    var updatedReview = reviewResponse.getResponseBody();
+                    assert updatedReview != null;
+                    assertEquals(8.0, updatedReview.getRating());
+                    assertEquals("Not an Awesome Movie", updatedReview.getComment());
+                });
+    }
+```
+
+
+
+---
+
+
