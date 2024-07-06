@@ -8,7 +8,7 @@ Netty는 Spring WebFlux에서 기본으로 사용하는 **네트워크 애플리
 
 **비동기식 이벤트 기반 네트워킹**을 모토로 하고 있다.
 
-### Netty의 핵심 컴포넌트 및 구
+### Netty의 핵심 컴포넌트 및 구성
 
 #### Channel
 
@@ -127,7 +127,6 @@ JDK가 기본 제공하는 `java.util.concurrent.Future`를 발전시킨 `Channe
 2024-06-16 16:54:20.508 DEBUG 13232 --- [ctor-http-nio-2] o.s.w.s.adapter.HttpWebHandlerAdapter    : [46040444-1, L:/127.0.0.1:8080 - R:/127.0.0.1:11798] Completed 201 CREATED
 2024-06-16 16:54:20.510 DEBUG 13232 --- [ctor-http-nio-2] r.n.http.server.HttpServerOperations     : [id:46040444-1, L:/127.0.0.1:8080 - R:/127.0.0.1:11798] Last HTTP response frame
 2024-06-16 16:54:20.510 DEBUG 13232 --- [ctor-http-nio-2] r.n.http.server.HttpServerOperations     : [id:46040444-1, L:/127.0.0.1:8080 - R:/127.0.0.1:11798] Last HTTP packet was sent, terminating the channel
-
 ```
 
 - 위와 같이 로그를 추출했을 때, **스레드**의 변화에 주목한다.
@@ -233,7 +232,7 @@ Functional Web 전체를 크게 두 가지 모듈로 추상화하여 구분할 �
                         (request -> ServerResponse.ok().bodyValue("helloworld")))
                 .build();
     }
-    
+
     public Mono<ServerResponse> addReview(ServerRequest request) {
         return request.bodyToMono(Review.class)
                 .flatMap(reviewReactiveRepository::save)
@@ -350,7 +349,7 @@ Validation 처리는 Router가 아닌 Handler에서 이루어진다.
                 .flatMap(reviewReactiveRepository::save)
                 .flatMap(ServerResponse.status(HttpStatus.CREATED)::bodyValue);
    }
-   
+
    private void validate(Review review) {
         var constraintViolations = validator.validate(review);
         log.info("constraintViolations : {}", constraintViolations);
@@ -434,5 +433,3 @@ Spring WebFlux에서 `DataBufferFactory`를 사용하여 에러 메시지를 생
 4. **HTTP 응답 작성**:
    
    - `ServerHttpResponse`와 같은 WebFlux 구성 요소는 `DataBuffer`를 사용하여 응답 본문을 작성합니다. `DataBufferFactory`를 사용하면 이 과정이 일관되고 효율적으로 이루어집니다.
-
-
