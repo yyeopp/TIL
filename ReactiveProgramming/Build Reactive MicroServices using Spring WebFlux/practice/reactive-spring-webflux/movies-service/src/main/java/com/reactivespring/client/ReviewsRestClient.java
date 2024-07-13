@@ -3,6 +3,7 @@ package com.reactivespring.client;
 import com.reactivespring.domain.Review;
 import com.reactivespring.exception.ReviewsClientException;
 import com.reactivespring.exception.ReviewsServerException;
+import com.reactivespring.util.RetryUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,7 +35,7 @@ public class ReviewsRestClient {
                 .retrieve()
                 .onStatus(HttpStatus::is4xxClientError, (clientResponse -> {
                     log.info("Status code : {}", clientResponse.statusCode().value());
-                    if(clientResponse.statusCode().equals(HttpStatus.NOT_FOUND)){
+                    if (clientResponse.statusCode().equals(HttpStatus.NOT_FOUND)) {
                         return Mono.empty();
                     }
                     return clientResponse.bodyToMono(String.class)
@@ -42,10 +43,13 @@ public class ReviewsRestClient {
                 }))
                 .onStatus(HttpStatus::is5xxServerError, (clientResponse -> {
                     log.info("Status code : {}", clientResponse.statusCode().value());
+                    log.info("####################################################");
                     return clientResponse.bodyToMono(String.class)
                             .flatMap(response -> Mono.error(new ReviewsServerException(response)));
                 }))
-                .bodyToFlux(Review.class);
+                .bodyToFlux(Review.class)
+                .retryWhen(RetryUtil.retrySpec())
+                .log();
 
     }
 

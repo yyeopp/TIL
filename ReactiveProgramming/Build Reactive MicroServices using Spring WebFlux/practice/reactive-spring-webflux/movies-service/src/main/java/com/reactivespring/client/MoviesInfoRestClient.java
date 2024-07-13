@@ -3,6 +3,7 @@ package com.reactivespring.client;
 import com.reactivespring.domain.MovieInfo;
 import com.reactivespring.exception.MoviesInfoClientException;
 import com.reactivespring.exception.MoviesInfoServerException;
+import com.reactivespring.util.RetryUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,6 +23,7 @@ public class MoviesInfoRestClient {
     private String moviesInfoUrl;
 
     public Mono<MovieInfo> retrieveMovieInfo(String movieId) {
+
         var url = moviesInfoUrl.concat("/{id}");
 
         return webClient.get()
@@ -44,6 +46,7 @@ public class MoviesInfoRestClient {
                                     -> Mono.error(new MoviesInfoServerException("Server Exception " + responseMessage)));
                 })
                 .bodyToMono(MovieInfo.class)
+                .retryWhen(RetryUtil.retrySpec())
                 .log();
     }
 }

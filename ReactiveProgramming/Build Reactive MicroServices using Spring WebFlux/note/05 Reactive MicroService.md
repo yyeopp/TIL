@@ -260,4 +260,85 @@ public class MoviesControllerIntgTest {
 
 - 앞서 구성한  `GlobalErrorHandler`에 대해서도 위와 같이 테스트를 실행해볼 수 있다.
 
+---
+
+## Retry 적용
+
+MSA 환경에서 서비스 간 호출에서 일시적인 장애는 언제든지 발생할 수 있다.
+
+HTTP Status 기준 4XX 같이 아예 호출을 잘못한 케이스가 아니라, 일시적인 부하 집중으로 인한 타임아웃 같은 5XX 에러에 대해서는,
+
+**적절한 Retry** 정책이 적용되는 편이 더 안정적인 서비스 운영을 위해 필요하다.
+
+이를 위해 `reactor.util.retry.Retry` 클래스를 잘 활용해본다.
+
+### Retry 구
+
+```java
+public class RetryUtil {
+    public static Retry retrySpec() {
+
+        return Retry.fixedDelay(3, Duration.ofSeconds(1))
+                .filter(ex -> ex instanceof MoviesInfoServerException
+                        || ex instanceof ReviewsServerException)
+                .onRetryExhaustedThrow((retryBackoffSpec, retrySignal)
+                        -> Exceptions.propagate(retrySignal.failure()));
+    }
+}
+
+```
+
+- `WebClient` 에서 바인딩해서 사용 가능한 `Retry` 클래스를 생성한다.
+
+- 다음과 같은 정책들을 설정할 수 있다.
+  
+  - 몇 번 Retry 할 건지
+  
+  - Retry 간의 주기를 어떻게 할 것인지
+  
+  - 어떤 Exception 에 대해서 Retry를 진행할 것인지
+  
+  - Retry가 종료됐을 때, 최종적으로 클라이언트에게 어떤 응답을 돌려줄 것인지
+    
+    - 예제코드에서는 목적지 서버에서 발생한 Exception을 그대로 전파시키는 내용으로 구성됨
+
+이후 `WebClient` 를 호출하는 함수에,
+
+`.retryWhen(RetryUtil.retrySpec())` 같은 형태로 묶어주면 구성 완료다.
+
+### 테스트코드 구성
+
+```java
+
+    @Test
+    void retrieveMovieMyId_Reviews_5XX() {
+        var movieId = "abc";
+        stubFor(get(urlEqualTo("/v1/movieInfos" + "/" + movieId))
+                .willReturn(aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBodyFile("movieinfo.json")));
+
+        stubFor(get(urlPathEqualTo("/v1/reviews"))
+                .willReturn(aResponse()
+                        .withStatus(500)
+                        .withBody("Review Service Unavailable")));
+
+        webTestClient.get()
+                .uri("/v1/movies/{id}", movieId)
+                .exchange()
+                .expectStatus()
+                .is5xxServerError()
+                .expectBody(String.class);
+
+        verify(4,
+                getRequestedFor(urlPathMatching("/v1/reviews*")));
+    }
+```
+
+- `verify` 함수에서, 특정 URL로 향하는 요청이 테스트코드 전체에서 **몇 번 호출됐는지**를 검증할 수 있다.
+
+- 위 코드는 Review Service에서 의도적으로 500 에러를 냈고, 3번의 retry가 발생하므로
+
+- 결과적으로 4번의 호출이 발생한다.
+
 

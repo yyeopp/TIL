@@ -13,7 +13,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import java.util.Objects;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
@@ -74,6 +74,9 @@ public class MoviesControllerIntgTest {
                 .expectStatus().is4xxClientError()
                 .expectBody(String.class);
 
+        verify(1,
+                getRequestedFor(urlEqualTo("/v1/movieInfos" + "/" + movieId)));
+
     }
 
     @Test
@@ -120,6 +123,32 @@ public class MoviesControllerIntgTest {
                 .is5xxServerError()
                 .expectBody(String.class);
 
+        verify(4,
+                getRequestedFor(urlEqualTo("/v1/movieInfos" + "/" + movieId)));
     }
 
+
+    @Test
+    void retrieveMovieMyId_Reviews_5XX() {
+        var movieId = "abc";
+        stubFor(get(urlEqualTo("/v1/movieInfos" + "/" + movieId))
+                .willReturn(aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBodyFile("movieinfo.json")));
+
+        stubFor(get(urlPathEqualTo("/v1/reviews"))
+                .willReturn(aResponse()
+                        .withStatus(500)
+                        .withBody("Review Service Unavailable")));
+
+        webTestClient.get()
+                .uri("/v1/movies/{id}", movieId)
+                .exchange()
+                .expectStatus()
+                .is5xxServerError()
+                .expectBody(String.class);
+
+        verify(4,
+                getRequestedFor(urlPathMatching("/v1/reviews*")));
+    }
 }
