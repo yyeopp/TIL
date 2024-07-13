@@ -120,7 +120,6 @@ public class GlobalErrorHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(exception.getMessage());
     }
 }
-
 ```
 
 - MVC 때 사용했던 `@ControllerAdvice`를 거의 그대로 사용할 수 있다.
@@ -175,7 +174,6 @@ WireMock은 Java 기반의 라이브러리로, 독립 실행형 서버로 실행
 ### 통합테스트 구성하기
 
 ```java
-
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -272,7 +270,7 @@ HTTP Status 기준 4XX 같이 아예 호출을 잘못한 케이스가 아니라,
 
 이를 위해 `reactor.util.retry.Retry` 클래스를 잘 활용해본다.
 
-### Retry 구
+### Retry 구성
 
 ```java
 public class RetryUtil {
@@ -285,7 +283,6 @@ public class RetryUtil {
                         -> Exceptions.propagate(retrySignal.failure()));
     }
 }
-
 ```
 
 - `WebClient` 에서 바인딩해서 사용 가능한 `Retry` 클래스를 생성한다.
@@ -309,7 +306,6 @@ public class RetryUtil {
 ### 테스트코드 구성
 
 ```java
-
     @Test
     void retrieveMovieMyId_Reviews_5XX() {
         var movieId = "abc";
