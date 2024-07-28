@@ -123,7 +123,6 @@ SSE는 클라이언트에서 서버로의 단일 HTTP 요청을 통해 시작됩
 #### multicast
 
 ```java
-
     @Test
     void sinks_multicast() {
         Sinks.Many<Integer> multicast = Sinks.many().multicast().onBackpressureBuffer();
@@ -220,8 +219,6 @@ SSE는 클라이언트에서 서버로의 단일 HTTP 요청을 통해 시작됩
   - 예시: HTTP 요청에 대한 단일 응답을 처리할 때 사용할 수 있습니다.
 
 ### 이벤트 발행 및 예외 처리
-
-
 
 `tryEmitNext` 메서드는 Reactor의 `Sinks` API에서 사용되며, 데이터를 발행할 때 발생할 수 있는 다양한 상황을 더 유연하게 처리할 수 있게 해줍니다. 이 메서드는 발행 시도가 성공했는지 여부를 나타내는 결과를 반환하므로, 발행 실패 시 추가적인 처리를 수행할 수 있습니다.
 
