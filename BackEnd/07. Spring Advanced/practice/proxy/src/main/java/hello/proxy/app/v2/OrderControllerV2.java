@@ -16,7 +16,8 @@ public class OrderControllerV2 {
 
     @GetMapping("/v2/request")
     public String request(String itemId) {
-        return orderService.orderItem(itemId);
+        orderService.orderItem(itemId);
+        return "ok";
     }
 
     @GetMapping("/v2/no-log")
