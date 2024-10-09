@@ -23,7 +23,8 @@ public class ProxyFactoryTest {
         log.info("targetClass = {}", target.getClass());
         log.info("proxyClass = {}", proxy.getClass());
 
-        proxy.call();
+        proxy.save();
+        proxy.find();
 
         Assertions.assertThat(AopUtils.isAopProxy(proxy)).isTrue();
         Assertions.assertThat(AopUtils.isJdkDynamicProxy(proxy)).isTrue();
@@ -60,7 +61,8 @@ public class ProxyFactoryTest {
         log.info("targetClass = {}", target.getClass());
         log.info("proxyClass = {}", proxy.getClass());
 
-        proxy.call();
+        proxy.save();
+        proxy.find();
 
         Assertions.assertThat(AopUtils.isAopProxy(proxy)).isTrue();
         Assertions.assertThat(AopUtils.isJdkDynamicProxy(proxy)).isFalse();
