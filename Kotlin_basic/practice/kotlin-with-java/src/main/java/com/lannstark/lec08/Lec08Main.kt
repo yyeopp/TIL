@@ -3,7 +3,7 @@ package com.lannstark.lec08
 fun main() {
     repeat("Hello World")
     repeat("Hello World", useNewLine = false)       // named parameter
-    printNameAndGender(name = "강성엽", gender = "Male")   // Builder 유사
+    printNameAndGender(name = "강성엽", gender = "Male")   // Builder 유사 ( named parameter)
 
     printAll("A", "B", "C")
 
