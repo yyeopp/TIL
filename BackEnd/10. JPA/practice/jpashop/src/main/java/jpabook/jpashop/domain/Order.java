@@ -15,6 +15,10 @@ public class Order {
     @Column(name = "ORDER_ID")
     private Long id;
 
+    @OneToOne
+    @JoinColumn(name = "DELIVERY_ID")
+    private Delivery delivery;
+
     public Member getMember() {
         return member;
     }
