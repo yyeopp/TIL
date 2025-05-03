@@ -15,9 +15,17 @@ public class JpaMain {
         EntityTransaction tx = em.getTransaction();
         tx.begin();
         try {
-            Member findMember1 = em.find(Member.class, 101L);
-            Member findMember2 = em.find(Member.class, 101L);
-            System.out.println("result = " + (findMember1 == findMember2));
+
+            final Member member = em.find(Member.class, 150L);
+            member.setName("AAA");
+
+
+            em.clear();
+            final Member member2 = em.find(Member.class, 150L);
+            member.setName("AAA");
+
+            em.detach(member2);
+
             tx.commit();
         } catch (Exception e) {
             tx.rollback();
@@ -27,3 +35,5 @@ public class JpaMain {
         emf.close();
     }
 }
+
+
