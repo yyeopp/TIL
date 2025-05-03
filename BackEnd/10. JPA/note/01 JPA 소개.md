@@ -76,4 +76,46 @@ ORM 프레임워크가 **중간에서 매핑**해주는 것.
   
   - 지연 로딩과 즉시 로딩
 
+---
+
+## JPA 시작
+
+### 데이터베이스 방언
+
+JPA는 특정 DBMS에 종속되지 않는다.
+
+DBMS 간에 발생하는 문법 차이는 **방언**(dialect) 으로 취급하여, 설정파일에서 사용 중인 DBMS를 적절히 명시하면 그에 맞게 SQL을 생성해준다.
+
+- `hibernate.dialect`
+
+- 40가지 이상의 DBMS를 지원하고 있다.
+
+### JPA 구동 방식
+
+`Persistence` 객체에서 시작한다.
+
+- `META-INF/persistence.xml` 에서 설정 정보를 조회하고
+
+- `EntityManagerFactory` 를 생성
+
+`EntityManagerFactory` 가 실제 `EntityManager`를 생성함으로써 JPA가 구동된다.
+
+### 주의
+
+`EntityManagerFactory` 는 **하나만 생성해서 애플리케이션 전체에서 공유**한다.
+
+`EntityManager` 를 쓰레드 간에 공유하면 안 된다.
+
+JPA의 모든 데이터 변경은 **트랜잭션** 안에서 실행해야 한다.
+
+### JPQL
+
+JPA로 엔티티 객체 중심 개발을 진행하더라도, **검색** 쿼리는 피할 수 없다.
+
+애플리케이션에 필요한 데이터만 DB에서 불러오려면 결국 **검색 조건**이 포함된 SQL을 수행해야 한다.
+
+JPQL이 SQL을 추상화한 **객체 지향 쿼리 언어**이다.
+
+SQL과 거의 문법이 유사하고, dialect도 모두 지원된다.
+
 
