@@ -68,4 +68,16 @@ public class Member extends BaseEntity{
     public void setZipcode(String zipcode) {
         this.zipcode = zipcode;
     }
+
+    @Override
+    public String toString() {
+        return "Member{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", city='" + city + '\'' +
+                ", street='" + street + '\'' +
+                ", zipcode='" + zipcode + '\'' +
+                ", orders=" + orders +
+                '}';
+    }
 }
