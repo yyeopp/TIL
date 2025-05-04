@@ -4,10 +4,12 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.Persistence;
-import jpabook.jpashop.domain.Address;
-import jpabook.jpashop.domain.Child;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Root;
 import jpabook.jpashop.domain.Member;
-import jpabook.jpashop.domain.Parent;
+
+import java.util.List;
 
 public class JpaMain {
     public static void main(String[] args) {
@@ -50,6 +52,16 @@ public class JpaMain {
 //
 //            Parent findParent = em.find(Parent.class, parent.getId());
 //            findParent.getChildren().remove(0);
+
+            List<Member> result = em.createQuery("select m from Member m where m.name like '%%'", Member.class).getResultList();
+
+            CriteriaBuilder cb = em.getCriteriaBuilder();
+            CriteriaQuery<Member> query = cb.createQuery(Member.class);
+            Root<Member> m = query.from(Member.class);
+            query.select(m).where(cb.equal(m.get("name"), "kim"));
+            List<Member> result2 = em.createQuery(query).getResultList();
+
+            List<Member> result3 = em.createNativeQuery("select * from member").getResultList();
 
             tx.commit();
         } catch (Exception e) {
