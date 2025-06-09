@@ -6,6 +6,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 import study.datajpa.entity.Member;
+import study.datajpa.entity.Team;
 
 import java.util.List;
 
@@ -73,7 +74,7 @@ class MemberJpaRepositoryTest {
     }
 
     @Test
-    public void testNamedQuery () {
+    public void testNamedQuery() {
         final Member m1 = new Member("AAA", 10);
         final Member m2 = new Member("BBB", 20);
 
@@ -84,6 +85,38 @@ class MemberJpaRepositoryTest {
         assertEquals(result.get(0).getUsername(), "AAA");
         assertEquals(result.get(0).getAge(), 10);
         assertEquals(result.size(), 1);
+    }
+
+    @Test
+    public void paging() {
+        memberJpaRepository.save(new Member("member1", 10));
+        memberJpaRepository.save(new Member("member2", 10));
+        memberJpaRepository.save(new Member("member3", 10));
+        memberJpaRepository.save(new Member("member4", 10));
+        memberJpaRepository.save(new Member("member5", 10));
+
+        int age = 10;
+        int offset = 0;
+        int limit = 3;
+
+        List<Member> members = memberJpaRepository.findByPage(age, offset, limit);
+        long totalCount = memberJpaRepository.totalCount(age);
+
+        assertEquals(members.size(), 3);
+        assertEquals(totalCount, 5);
+    }
+
+    @Test
+    public void bulkUpdate() {
+        memberJpaRepository.save(new Member("member1", 10));
+        memberJpaRepository.save(new Member("member2", 19));
+        memberJpaRepository.save(new Member("member3", 20));
+        memberJpaRepository.save(new Member("member4", 21));
+        memberJpaRepository.save(new Member("member5", 40));
+
+        final int resultCount = memberJpaRepository.bulkAgePlus(20);
+        assertEquals(resultCount, 3);
+
     }
 
 

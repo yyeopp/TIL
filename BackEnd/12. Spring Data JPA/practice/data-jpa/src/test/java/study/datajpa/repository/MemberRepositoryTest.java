@@ -1,8 +1,14 @@
 package study.datajpa.repository;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 import study.datajpa.dto.MemberDto;
@@ -14,6 +20,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
 @Transactional
@@ -25,6 +32,9 @@ class MemberRepositoryTest {
 
     @Autowired
     TeamRepository teamRepository;
+
+    @PersistenceContext
+    EntityManager em;
 
     @Test
     public void testMember() {
@@ -156,4 +166,90 @@ class MemberRepositoryTest {
         final Optional<Member> optional = memberRepository.findOptionalByUsername("AAA");   // Java 8 이후 표준
 
     }
+
+    @Test
+    public void paging() {
+        memberRepository.save(new Member("member1", 10));
+        memberRepository.save(new Member("member2", 10));
+        memberRepository.save(new Member("member3", 10));
+        memberRepository.save(new Member("member4", 10));
+        memberRepository.save(new Member("member5", 10));
+
+        int age = 10;
+        final PageRequest pageRequest = PageRequest.of(0, 3, Sort.by(Sort.Direction.DESC, "username"));
+        Page<Member> page = memberRepository.findByAge(age, pageRequest);
+        List<Member> members = page.getContent();
+        long totalElements = page.getTotalElements();
+        assertEquals(members.size(), 3);
+        assertEquals(totalElements, 5);
+        assertEquals(page.getNumber(), 0);
+        assertEquals(page.getTotalPages(), 2);
+        assertTrue(page.isFirst());
+        assertTrue(page.hasNext());
+
+        final Page<MemberDto> memberDto = page.map(member -> new MemberDto(member.getId(), member.getUsername(), "teamA"));
+
+    }
+
+    @Test
+    public void bulkUpdate() {
+        memberRepository.save(new Member("member1", 10));
+        memberRepository.save(new Member("member2", 19));
+        memberRepository.save(new Member("member3", 20));
+        memberRepository.save(new Member("member4", 21));
+        memberRepository.save(new Member("member5", 40));
+
+        final int resultCount = memberRepository.bulkAgePlus(20);
+        assertEquals(resultCount, 3);
+//        em.flush();
+//        em.clear();
+
+        final List<Member> result = memberRepository.findByUsername("member5");
+        final Member member5 = result.get(0);
+        assertEquals(member5.getAge(), 41);
+    }
+
+    @Test
+    public void findMemberLazy() {
+        final Team teamA = new Team("teamA");
+        final Team teamB = new Team("teamB");
+        teamRepository.save(teamA);
+        teamRepository.save(teamB);
+
+        final Member member1 = new Member("member1", 10, teamA);
+        final Member member2 = new Member("member1", 10, teamB);
+        memberRepository.save(member1);
+        memberRepository.save(member2);
+
+        em.flush();
+        em.clear();
+
+        final List<Member> members = memberRepository.findMemberEntityGraphByUsername("member1");
+        for (Member member : members) {
+            System.out.println(member.getUsername());
+            System.out.println(member.getTeam().getName());
+        }
+    }
+
+    @Test
+    public void queryHint() {
+        final Member member1 = memberRepository.save(new Member("member1", 10));
+        em.flush();
+        em.clear();
+
+        final Member findMember = memberRepository.findReadOnlyByUsername("member1");
+        findMember.setUsername("member2");
+        em.flush();
+    }
+
+    @Test
+    public void lock() {
+        final Member member1 = memberRepository.save(new Member("member1", 10));
+        em.flush();
+        em.clear();
+
+        List<Member> findMember = memberRepository.findLockByUsername("member1");
+
+    }
+
 }
