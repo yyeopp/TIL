@@ -252,4 +252,10 @@ class MemberRepositoryTest {
 
     }
 
+    @Test
+    public void callCustom() {
+        final List<Member> memberCustom = memberRepository.findMemberCustom();
+        System.out.println(memberCustom.toString());
+    }
+
 }
