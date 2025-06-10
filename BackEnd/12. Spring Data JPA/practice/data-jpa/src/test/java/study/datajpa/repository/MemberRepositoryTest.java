@@ -5,10 +5,7 @@ import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 import study.datajpa.dto.MemberDto;
@@ -258,4 +255,66 @@ class MemberRepositoryTest {
         System.out.println(memberCustom.toString());
     }
 
+    @Test
+    public void queryByExample() {
+        final Team teamA = new Team("teamA");
+        teamRepository.save(teamA);
+
+        final Member member1 = new Member("member1", 10, teamA);
+        final Member member2 = new Member("member2", 10, teamA);
+
+        memberRepository.save(member1);
+        memberRepository.save(member2);
+
+        em.flush();
+        em.clear();
+
+        Team t = new Team("teamA");
+        Member m = new Member("member1", 10, t);
+
+        final ExampleMatcher matcher = ExampleMatcher.matching().withIgnorePaths("age");
+
+        Example<Member> example = Example.of(m, matcher);
+        final List<Member> result = memberRepository.findAll(example);
+
+    }
+
+
+    @Test
+    public void nativeQuery() {
+        final Team teamA = new Team("teamA");
+        teamRepository.save(teamA);
+
+        final Member member1 = new Member("member1", 10, teamA);
+        final Member member2 = new Member("member2", 10, teamA);
+
+        memberRepository.save(member1);
+        memberRepository.save(member2);
+
+        em.flush();
+        em.clear();
+        final Member result = memberRepository.findByNativeQuery("member1");
+        System.out.println(result);
+    }
+
+    @Test
+    public void nativeQueryProjections() {
+        final Team teamA = new Team("teamA");
+        teamRepository.save(teamA);
+
+        final Member member1 = new Member("member1", 10, teamA);
+        final Member member2 = new Member("member2", 10, teamA);
+
+        memberRepository.save(member1);
+        memberRepository.save(member2);
+
+        em.flush();
+        em.clear();
+        final Page<MemberProjections> result = memberRepository.findByNativeProjection(PageRequest.of(0, 10));
+        final List<MemberProjections> content = result.getContent();
+        for (MemberProjections memberProjections : content) {
+            System.out.println(memberProjections.getUsername());
+            System.out.println(memberProjections.getTeamName());
+        }
+    }
 }
